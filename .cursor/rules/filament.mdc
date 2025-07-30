@@ -1,0 +1,89 @@
+---
+alwaysApply: true
+---
+# 需要注意的事情，版本：3.3
+
+- composer.json 可以看出是否已經有 filament 的文件
+- 當我建立 resource，記得要建立 resources 底下要建立 create, edit, list 的文件
+
+- resource 裏面是要將一下的資料寫的
+
+```
+protected static ?string $navigationGroup = '網站管理';
+protected static ?string $navigationLabel = '廣告管理';
+protected static ?string $modelLabel = '廣告';
+protected static ?string $pluralModelLabel = '廣告';
+protected static ?int $navigationSort = 0;
+```
+
+- create，edit 要遵循要增加一段
+
+```
+protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+```
+
+- $form 使用 FileUpload 參考以下的片段
+
+```
+Forms\Components\FileUpload::make('image')
+                    ->label('封面圖片')
+                    ->image()
+                    ->imageEditor()
+                    ->directory('albums')
+                    ->columnSpanFull()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->downloadable()
+                    ->openable()
+                    ->getUploadedFileNameForStorageUsing(
+                        fn($file): string => (string) str(Str::uuid7() . '.webp')
+                    )
+
+                    ->saveUploadedFileUsing(function ($file) {
+                        $manager = new ImageManager(new Driver());
+                        $image = $manager->read($file);
+                        $image->cover(1024, 1024);
+                        $filename = Str::uuid7()->toString() . '.webp';
+
+                        if (!file_exists(storage_path('app/public/albums'))) {
+                            mkdir(storage_path('app/public/albums'), 0755, true);
+                        }
+
+                        $image->toWebp(80)->save(storage_path('app/public/albums/' . $filename));
+                        return 'albums/' . $filename;
+                    })
+                    ->deleteUploadedFileUsing(function ($file) {
+                        if ($file) {
+                            Storage::disk('public')->delete($file);
+                        }
+                    }),
+
+```
+
+  
+
+- $form 使用 RichEditor 改用以下
+
+```
+use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
+TinyEditor::make('content')
+
+```
+
+  
+
+- $form DateTimePicker 改爲
+
+```
+  Flatpickr::make('rent_at')
+                    ->label('出租時間')
+                    ->dateFormat('Y-m-d')
+                    ->allowInput()
+                    ->altInput(true)
+                    ->altFormat('Y-m-d')
+                    ->customConfig([
+                        'locale' => 'zh_tw',
+                    ]),
+```

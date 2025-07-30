@@ -1,0 +1,11 @@
+category_slug,type,question,correct_answer,options,explanation,difficulty
+daily-conversation,choice,"What's your name?","My name is John","['My name is John', 'I am fine', 'Thank you', 'Goodbye']","This is a common greeting question.",easy
+daily-conversation,choice,"How are you?","I'm fine, thank you","['I'm fine, thank you', 'My name is Tom', 'I am 25', 'I live in Taipei']","This is a common greeting response.",easy
+travel-transport,fill,"I want to go to the ___ station.","airport","['airport', 'bus', 'train', 'subway', 'taxi']","Airport is the correct word for air travel.",medium
+travel-transport,choice,"Where is the nearest bus stop?","It's around the corner","['It's around the corner', 'I don't know', 'Maybe later', 'Not sure']","Asking about bus stop location.",easy
+business-english,choice,"When is the meeting?","It's at 2 PM","['It's at 2 PM', 'I don't know', 'Maybe later', 'Not sure']","Asking about meeting time.",easy
+business-english,fill,"Please ___ the report by Friday.","submit","['submit', 'send', 'give', 'bring', 'take']","Submit is the correct word for turning in work.",medium
+campus-life,choice,"What's your major?","I study Computer Science","['I study Computer Science', 'I am a student', 'I like reading', 'I go to school']","Asking about academic field.",easy
+campus-life,fill,"The library is ___ the student center.","next to","['next to', 'inside', 'above', 'below', 'behind']","Next to indicates location relationship.",medium
+health-medical,choice,"How do you feel today?","I have a headache","['I have a headache', 'I am happy', 'I am tired', 'I am busy']","Describing health condition.",easy
+health-medical,fill,"I need to make an ___ with the doctor.","appointment","['appointment', 'meeting', 'call', 'visit', 'time']","Appointment is the correct word for scheduling medical visits.",medium 

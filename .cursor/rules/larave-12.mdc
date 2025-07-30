@@ -1,0 +1,134 @@
+---
+alwaysApply: true
+---
+### 安裝 Laravel
+
+- 初始用 sqlite
+
+```
+composer create-project --prefer-dist laravel/laravel . 
+```
+
+### 安裝套件
+
+#### 圖片處理
+```
+composer require intervention/image
+```
+
+### 安裝 filament
+
+```
+composer require filament/filament
+php artisan filament:install --panels
+php artisan vendor:publish --tag=filament-config
+```
+
+#### 安裝 Plugun
+
+```
+composer require coolsam/flatpickr:^3.2
+php artisan vendor:publish --tag="coolsam-flatpickr-config"
+```
+
+#### 增加 tinymce
+
+- 安裝
+
+```
+composer require mohamedsabil83/filament-forms-tinyeditor
+php artisan vendor:publish --tag="filament-forms-tinyeditor-config"
+```
+
+- 使用
+
+```
+use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
+
+TinyEditor::make('content')
+```
+
+#### 其他處理
+
+### 設定 filament 帳號
+
+```
+php artisan make:filament-user
+```
+
+### 複製翻譯檔案
+
+複製文件裏面的 filament_lang
+
+# Laravel PHP Cursor 規則 - 中文翻譯
+
+## 🎯 核心原則
+
+- 撰寫簡潔、技術精確的回應，並附上正確的 PHP 範例。
+- 遵循 Laravel 的最佳實踐與約定。
+- 採用物件導向程式設計，並專注於 SOLID 原則。
+- 偏好迭代與模組化，避免重複代碼。
+- 使用具描述性的變數與方法名稱。
+- 目錄命名採用小寫加連字號（例如：`app/Http/Controllers`）。
+- 偏好依賴注入與服務容器。
+
+---
+
+## 🧱 PHP/Laravel 實踐
+
+- 適時使用 PHP 8.1+ 的新特性（如：型別屬性、`match` 表達式）。
+- 遵循 PSR-12 編碼標準。
+- 啟用嚴格型別：`declare(strict_types=1);`
+- 盡可能利用 Laravel 內建的功能與輔助函式。
+- 遵循 Laravel 的目錄結構與命名約定。
+- 實施適當的錯誤處理與日誌記錄：
+    - 使用 Laravel 的異常處理與日誌功能。
+    - 必要時建立自訂異常。
+    - 對預期的異常使用 `try-catch` 區塊。
+- 使用 Laravel 的驗證功能進行表單與請求驗證。
+- 實施中介軟體（Middleware）進行請求過濾與修改。
+- 使用 Laravel 的 Eloquent ORM 進行資料庫互動。
+- 對於複雜的資料庫查詢，使用 Laravel 的查詢建構器。
+- 實施適當的資料庫遷移與資料填充器（Seeder）。
+
+---
+
+## 📦 依賴項
+
+- Laravel（最新穩定版本）
+- Composer（用於依賴管理）
+
+---
+
+## ✅ Laravel 最佳實踐
+
+- 盡可能使用 Eloquent ORM，避免使用原始 SQL 查詢。
+- 實施儲存庫模式（Repository Pattern）作為資料存取層。
+- 使用 Laravel 內建的身份驗證與授權功能。
+- 利用 Laravel 的快取機制提升效能。
+- 對於長時間執行的任務，實施工作佇列（Job Queues）。
+- 使用 Laravel 的內建測試工具（如 PHPUnit、Dusk）進行單元與功能測試。
+- 對於公開的 API，實施 API 版本控制。
+- 使用 Laravel 的本地化功能支援多語言。
+- 實施適當的 CSRF 保護與安全措施。
+- 使用 Laravel Mix 進行資產編譯。
+- 實施適當的資料庫索引以提升查詢效能。
+- 使用 Laravel 的內建分頁功能。
+- 實施適當的錯誤日誌記錄與監控。
+
+---
+
+## 📐 關鍵約定
+
+1. 遵循 Laravel 的 MVC 架構。
+2. 使用 Laravel 的路由系統定義應用程式端點。
+3. 使用表單請求（Form Requests）進行適當的請求驗證。
+4. 使用 Laravel 的 Blade 模板引擎進行視圖渲染。
+5. 使用 Eloquent 實施適當的資料庫關聯。
+6. 使用 Laravel 的內建身份驗證腳手架。
+7. 實施適當的 API 資源轉換。
+8. 使用 Laravel 的事件與監聽器系統實現解耦的代碼。
+9. 實施適當的資料庫交易以確保資料完整性。
+10. 使用 Laravel 的內建排程功能處理定期任務。
+
+---
