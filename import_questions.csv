@@ -1,0 +1,21 @@
+category_slug,type,question,correct_answer,options,explanation,difficulty
+daily-conversation,choice,"What's your name?","My name is John","[""My name is John"", ""I am fine"", ""Thank you"", ""Goodbye""]","This is a common greeting question.",easy
+daily-conversation,choice,"How are you today?","I'm doing well, thank you","[""I'm doing well, thank you"", ""My name is Tom"", ""I am 25 years old"", ""I live in Taipei""]","This is a common greeting response.",easy
+daily-conversation,fill,"I would like to ___ a cup of coffee.","order","[""order"", ""buy"", ""get"", ""take"", ""have""]","Order is the correct word for requesting food or drinks.",medium
+daily-conversation,choice,"Where do you live?","I live in Taipei","[""I live in Taipei"", ""I am a student"", ""I like reading"", ""I go to school""]","Asking about someone's residence.",easy
+travel-transport,choice,"How can I get to the airport?","You can take the MRT","[""You can take the MRT"", ""I don't know"", ""Maybe later"", ""Not sure""]","Asking about transportation to airport.",medium
+travel-transport,fill,"The train will ___ at 3 PM.","arrive","[""arrive"", ""come"", ""reach"", ""get"", ""land""]","Arrive is the correct word for transportation timing.",medium
+travel-transport,choice,"Where is the nearest bus stop?","It's around the corner","[""It's around the corner"", ""I don't know"", ""Maybe later"", ""Not sure""]","Asking about bus stop location.",easy
+travel-transport,fill,"I need to ___ a taxi to the hotel.","call","[""call"", ""phone"", ""ring"", ""dial"", ""contact""]","Call is the correct word for requesting a taxi.",easy
+business-english,choice,"When is the meeting scheduled?","It's at 2 PM tomorrow","[""It's at 2 PM tomorrow"", ""I don't know"", ""Maybe later"", ""Not sure""]","Asking about meeting schedule.",medium
+business-english,fill,"Please ___ the report by Friday.","submit","[""submit"", ""send"", ""give"", ""bring"", ""take""]","Submit is the correct word for turning in work.",medium
+business-english,choice,"What's your job title?","I'm a software engineer","[""I'm a software engineer"", ""I am a student"", ""I like reading"", ""I go to school""]","Asking about professional position.",easy
+business-english,fill,"The project deadline is ___ next month.","due","[""due"", ""set"", ""fixed"", ""planned"", ""scheduled""]","Due is the correct word for deadlines.",hard
+campus-life,choice,"What's your major?","I study Computer Science","[""I study Computer Science"", ""I am a student"", ""I like reading"", ""I go to school""]","Asking about academic field.",easy
+campus-life,fill,"The library is ___ the student center.","next to","[""next to"", ""inside"", ""above"", ""below"", ""behind""]","Next to indicates location relationship.",medium
+campus-life,choice,"When does the semester start?","It starts in September","[""It starts in September"", ""I don't know"", ""Maybe later"", ""Not sure""]","Asking about academic calendar.",medium
+campus-life,fill,"Students must ___ their assignments on time.","complete","[""complete"", ""finish"", ""do"", ""make"", ""write""]","Complete is the correct word for finishing assignments.",easy
+health-medical,choice,"How do you feel today?","I have a headache","[""I have a headache"", ""I am happy"", ""I am tired"", ""I am busy""]","Describing health condition.",easy
+health-medical,fill,"I need to make an ___ with the doctor.","appointment","[""appointment"", ""meeting"", ""call"", ""visit"", ""time""]","Appointment is the correct word for scheduling medical visits.",medium
+health-medical,choice,"What are your symptoms?","I have a fever and cough","[""I have a fever and cough"", ""I am fine"", ""I am tired"", ""I am busy""]","Describing medical symptoms.",medium
+health-medical,fill,"The medicine should be ___ three times a day.","taken","[""taken"", ""eaten"", ""drunk"", ""used"", ""applied""]","Taken is the correct word for medication consumption.",hard

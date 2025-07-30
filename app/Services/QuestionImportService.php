@@ -20,7 +20,9 @@ class QuestionImportService
         ];
 
         try {
-            $csv = Reader::createFromPath($file->getPathname(), 'r');
+            // 處理 Filament FileUpload 的檔案路徑
+            $filePath = is_string($file) ? $file : $file->getPathname();
+            $csv = Reader::createFromPath($filePath, 'r');
             $csv->setHeaderOffset(0);
 
             $records = Statement::create()->process($csv);

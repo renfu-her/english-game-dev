@@ -54,7 +54,10 @@ class QuestionImport extends Page
 
         try {
             $importService = new QuestionImportService();
-            $results = $importService->importFromCsv($data['csv_file']);
+            
+            // 取得檔案的完整路徑
+            $filePath = storage_path('app/public/' . $data['csv_file']);
+            $results = $importService->importFromCsv($filePath);
 
             if (empty($results['errors'])) {
                 Notification::make()
