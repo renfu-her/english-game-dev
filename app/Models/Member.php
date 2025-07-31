@@ -45,17 +45,17 @@ class Member extends Authenticatable
 
     public function roomPlayers(): HasMany
     {
-        return $this->hasMany(RoomPlayer::class, 'user_id');
+        return $this->hasMany(RoomPlayer::class, 'member_id');
     }
 
     public function gameRecords(): HasMany
     {
-        return $this->hasMany(GameRecord::class, 'user_id');
+        return $this->hasMany(GameRecord::class, 'member_id');
     }
 
     public function chatMessages(): HasMany
     {
-        return $this->hasMany(ChatMessage::class, 'user_id');
+        return $this->hasMany(ChatMessage::class, 'member_id');
     }
 
     public function getAccuracyAttribute(): float

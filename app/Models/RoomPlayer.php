@@ -9,7 +9,7 @@ class RoomPlayer extends Model
 {
     protected $fillable = [
         'room_id',
-        'user_id',
+        'member_id',
         'is_ready',
         'score',
         'joined_at',
@@ -30,6 +30,6 @@ class RoomPlayer extends Model
 
     public function member(): BelongsTo
     {
-        return $this->belongsTo(Member::class, 'user_id');
+        return $this->belongsTo(Member::class, 'member_id');
     }
 }

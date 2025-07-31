@@ -12,9 +12,9 @@ class GameRecord extends Model
 
     protected $fillable = [
         'room_id',
-        'user_id',
+        'member_id',
         'question_id',
-        'user_answer',
+        'answer',
         'is_correct',
         'time_taken',
     ];
@@ -31,7 +31,7 @@ class GameRecord extends Model
 
     public function member(): BelongsTo
     {
-        return $this->belongsTo(Member::class, 'user_id');
+        return $this->belongsTo(Member::class, 'member_id');
     }
 
     public function question(): BelongsTo
