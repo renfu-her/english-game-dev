@@ -29,6 +29,8 @@
   - ✅ 更新 API 路由配置
   - ✅ 設定 Member Guard 認證
   - ✅ 建立 migration 將 room_players 表格的 user_id 改為 member_id
+  - ✅ 建立公開遊戲記錄 API（首頁用，無需認證）
+  - ✅ 建立公開遊戲統計 API（首頁用，無需認證）
 
 ### 2024-12-18
 - **上午**：

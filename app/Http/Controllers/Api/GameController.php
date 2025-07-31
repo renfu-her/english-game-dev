@@ -216,6 +216,135 @@ class GameController extends Controller
     }
 
     /**
+     * 取得公開的遊戲記錄（首頁用）
+     */
+    public function publicGameRecords(Request $request): JsonResponse
+    {
+        $request->validate([
+            'per_page' => 'nullable|integer|min:1|max:50',
+            'category_id' => 'nullable|exists:categories,id',
+            'difficulty' => 'nullable|in:easy,medium,hard',
+            'member_id' => 'nullable|exists:members,id'
+        ]);
+
+        $query = GameRecord::with(['member', 'room', 'question.category'])
+            ->orderBy('created_at', 'desc');
+
+        // 根據分類篩選
+        if ($request->has('category_id')) {
+            $query->whereHas('question', function ($q) use ($request) {
+                $q->where('category_id', $request->category_id);
+            });
+        }
+
+        // 根據難度篩選
+        if ($request->has('difficulty')) {
+            $query->whereHas('question', function ($q) use ($request) {
+                $q->where('difficulty', $request->difficulty);
+            });
+        }
+
+        // 根據會員篩選
+        if ($request->has('member_id')) {
+            $query->where('member_id', $request->member_id);
+        }
+
+        $records = $query->paginate($request->get('per_page', 15));
+
+        // 計算統計資料
+        $stats = [
+            'total_records' => GameRecord::count(),
+            'total_correct' => GameRecord::where('is_correct', true)->count(),
+            'total_members' => GameRecord::distinct('member_id')->count(),
+            'total_rooms' => GameRecord::distinct('room_id')->count(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'records' => $records,
+                'stats' => $stats
+            ],
+            'message' => '公開遊戲記錄取得成功'
+        ]);
+    }
+
+    /**
+     * 取得公開的遊戲統計（首頁用）
+     */
+    public function publicGameStats(): JsonResponse
+    {
+        // 今日統計
+        $today = now()->startOfDay();
+        $todayRecords = GameRecord::where('created_at', '>=', $today)->count();
+        $todayCorrect = GameRecord::where('created_at', '>=', $today)
+            ->where('is_correct', true)->count();
+
+        // 本週統計
+        $weekStart = now()->startOfWeek();
+        $weekRecords = GameRecord::where('created_at', '>=', $weekStart)->count();
+        $weekCorrect = GameRecord::where('created_at', '>=', $weekStart)
+            ->where('is_correct', true)->count();
+
+        // 本月統計
+        $monthStart = now()->startOfMonth();
+        $monthRecords = GameRecord::where('created_at', '>=', $monthStart)->count();
+        $monthCorrect = GameRecord::where('created_at', '>=', $monthStart)
+            ->where('is_correct', true)->count();
+
+        // 總體統計
+        $totalRecords = GameRecord::count();
+        $totalCorrect = GameRecord::where('is_correct', true)->count();
+        $totalMembers = GameRecord::distinct('member_id')->count();
+        $totalRooms = GameRecord::distinct('room_id')->count();
+
+        // 熱門分類
+        $popularCategories = GameRecord::with('question.category')
+            ->selectRaw('questions.category_id, COUNT(*) as count')
+            ->join('questions', 'game_records.question_id', '=', 'questions.id')
+            ->groupBy('questions.category_id')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'category' => $item->question->category,
+                    'count' => $item->count
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'today' => [
+                    'total' => $todayRecords,
+                    'correct' => $todayCorrect,
+                    'accuracy' => $todayRecords > 0 ? round(($todayCorrect / $todayRecords) * 100, 2) : 0
+                ],
+                'week' => [
+                    'total' => $weekRecords,
+                    'correct' => $weekCorrect,
+                    'accuracy' => $weekRecords > 0 ? round(($weekCorrect / $weekRecords) * 100, 2) : 0
+                ],
+                'month' => [
+                    'total' => $monthRecords,
+                    'correct' => $monthCorrect,
+                    'accuracy' => $monthRecords > 0 ? round(($monthCorrect / $monthRecords) * 100, 2) : 0
+                ],
+                'total' => [
+                    'records' => $totalRecords,
+                    'correct' => $totalCorrect,
+                    'accuracy' => $totalRecords > 0 ? round(($totalCorrect / $totalRecords) * 100, 2) : 0,
+                    'members' => $totalMembers,
+                    'rooms' => $totalRooms
+                ],
+                'popular_categories' => $popularCategories
+            ],
+            'message' => '遊戲統計取得成功'
+        ]);
+    }
+
+    /**
      * 計算遊戲結果
      */
     private function calculateGameResults(Room $room): array

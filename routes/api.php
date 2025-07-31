@@ -14,6 +14,12 @@ Route::post('/member/login', [ApiAuthController::class, 'memberLogin']);
 Route::post('/member/register', [ApiAuthController::class, 'memberRegister']);
 Route::post('/admin/login', [ApiAuthController::class, 'adminLogin']);
 
+// 公開的遊戲記錄 API（首頁用）
+Route::prefix('public')->group(function () {
+    Route::get('/game-records', [GameController::class, 'publicGameRecords']);
+    Route::get('/game-stats', [GameController::class, 'publicGameStats']);
+});
+
 // 需要認證的 API 路由
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [ApiAuthController::class, 'logout']);

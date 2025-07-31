@@ -17,6 +17,115 @@
 
 ## 📡 API 端點
 
+### 公開 API（無需認證）
+
+#### 取得公開遊戲記錄
+```http
+GET /api/public/game-records
+```
+
+**查詢參數：**
+- `per_page`: 每頁數量（預設15，最大50）
+- `category_id`: 分類 ID（可選）
+- `difficulty`: 難度（easy/medium/hard，可選）
+- `member_id`: 會員 ID（可選）
+
+**回應：**
+```json
+{
+    "success": true,
+    "data": {
+        "records": {
+            "data": [
+                {
+                    "id": 1,
+                    "room_id": 1,
+                    "member_id": 1,
+                    "question_id": 1,
+                    "answer": "My name is John",
+                    "is_correct": true,
+                    "time_taken": 15,
+                    "created_at": "2024-12-19T10:00:00.000000Z",
+                    "member": {
+                        "id": 1,
+                        "name": "會員姓名",
+                        "email": "member@example.com"
+                    },
+                    "room": {
+                        "id": 1,
+                        "name": "我的房間"
+                    },
+                    "question": {
+                        "id": 1,
+                        "question": "What's your name?",
+                        "category": {
+                            "id": 1,
+                            "name": "日常生活"
+                        }
+                    }
+                }
+            ],
+            "current_page": 1,
+            "per_page": 15,
+            "total": 100
+        },
+        "stats": {
+            "total_records": 1000,
+            "total_correct": 800,
+            "total_members": 50,
+            "total_rooms": 100
+        }
+    },
+    "message": "公開遊戲記錄取得成功"
+}
+```
+
+#### 取得公開遊戲統計
+```http
+GET /api/public/game-stats
+```
+
+**回應：**
+```json
+{
+    "success": true,
+    "data": {
+        "today": {
+            "total": 50,
+            "correct": 40,
+            "accuracy": 80.0
+        },
+        "week": {
+            "total": 300,
+            "correct": 240,
+            "accuracy": 80.0
+        },
+        "month": {
+            "total": 1200,
+            "correct": 960,
+            "accuracy": 80.0
+        },
+        "total": {
+            "records": 5000,
+            "correct": 4000,
+            "accuracy": 80.0,
+            "members": 100,
+            "rooms": 200
+        },
+        "popular_categories": [
+            {
+                "category": {
+                    "id": 1,
+                    "name": "日常生活"
+                },
+                "count": 500
+            }
+        ]
+    },
+    "message": "遊戲統計取得成功"
+}
+```
+
 ### 認證相關 API
 
 #### 會員註冊
