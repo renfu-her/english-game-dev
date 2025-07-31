@@ -28,6 +28,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             MemberSeeder::class,
+            RoomSeeder::class,
+            GameRecordSeeder::class,
         ]);
     }
 }
