@@ -56,8 +56,11 @@
     - 修改前端連接使用域名而非 IP
     - 修改服務器監聽標準 HTTP 端口
     - 支援自動 SSL/WSS 協議切換
-    - 配置 WebSocket 路徑為 `/ws`
-    - 使用 `wss://ai-tracks.com/ws` 連接
+      - 配置 WebSocket 路徑為 `/ws`
+  - 使用 `wss://ai-tracks.com/ws` 連接
+  - 參考 Cloudflare Workers WebSocket 處理方式
+  - 改進 WebSocket 升級請求處理
+  - 支援 Cloudflare 代理的 WebSocket 連接
 
 ### 2025-08-01 - WebSocket 連接問題修復
 - ✅ 發現並修復 WebSocket 連接問題
