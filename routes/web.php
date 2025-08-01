@@ -26,6 +26,8 @@ Route::prefix('game')->name('game.')->middleware('auth:member')->group(function 
     Route::get('/play/{room}', [App\Http\Controllers\GameController::class, 'play'])->name('play');
     Route::post('/chat/{room}', [App\Http\Controllers\GameController::class, 'sendChatMessage'])->name('chat');
     Route::post('/leave-room/{room}', [App\Http\Controllers\GameController::class, 'leaveRoom'])->name('leave-room');
+    Route::post('/toggle-ready/{room}', [App\Http\Controllers\GameController::class, 'toggleReadyStatus'])->name('toggle-ready');
+    Route::post('/set-all-ready/{room}', [App\Http\Controllers\GameController::class, 'setAllPlayersReady'])->name('set-all-ready');
 });
 
 // 測試路由

@@ -9,6 +9,7 @@ use App\Events\PlayerJoinedRoom;
 use App\Events\PlayerLeftRoom;
 use App\Events\GameStarted;
 use App\Events\ChatMessage;
+use App\Events\PlayerReadyStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -93,12 +94,15 @@ class GameController extends Controller
 
         $room->players()->create([
             'member_id' => Auth::guard('member')->id(),
-            'is_ready' => false,
+            'is_ready' => true, // 新加入的玩家預設為準備狀態
         ]);
 
         // 廣播玩家加入房間事件
         $member = Auth::guard('member')->user();
         broadcast(new PlayerJoinedRoom($room, $member))->toOthers();
+
+        // 廣播玩家準備狀態事件
+        broadcast(new PlayerReadyStatusChanged($room, $member, true));
 
         return redirect()->route('game.room', $room->id);
     }
@@ -189,5 +193,46 @@ class GameController extends Controller
         }
 
         return redirect()->route('game.lobby')->with('success', '已離開房間');
+    }
+
+    public function toggleReadyStatus(Room $room)
+    {
+        $member = Auth::guard('member')->user();
+        
+        // 檢查用戶是否在房間中
+        $player = $room->players()->where('member_id', $member->id)->first();
+        if (!$player) {
+            return response()->json(['error' => '您不在這個房間中'], 403);
+        }
+
+        // 切換準備狀態
+        $newReadyStatus = !$player->is_ready;
+        $player->update(['is_ready' => $newReadyStatus]);
+
+        // 廣播準備狀態變更事件
+        broadcast(new PlayerReadyStatusChanged($room, $member, $newReadyStatus));
+
+        return response()->json([
+            'success' => true,
+            'is_ready' => $newReadyStatus,
+            'message' => $newReadyStatus ? '已準備' : '取消準備'
+        ]);
+    }
+
+    public function setAllPlayersReady(Room $room)
+    {
+        if ($room->host_id !== Auth::guard('member')->id()) {
+            return response()->json(['error' => '只有房主可以設定所有玩家準備'], 403);
+        }
+
+        // 將所有玩家設為準備狀態
+        $room->players()->update(['is_ready' => true]);
+
+        // 廣播每個玩家的準備狀態變更
+        foreach ($room->players as $player) {
+            broadcast(new PlayerReadyStatusChanged($room, $player->member, true));
+        }
+
+        return response()->json(['success' => true, 'message' => '所有玩家已設為準備狀態']);
     }
 } 

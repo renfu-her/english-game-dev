@@ -61,15 +61,20 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center">
-                                        <span class="ready-indicator {{ $player->is_ready ? 'ready' : 'not-ready' }}"></span>
+                                        <span class="ready-indicator {{ $player->is_ready ? 'ready' : 'not-ready' }}" id="ready-{{ $player->member_id }}"></span>
                                         <strong>{{ $player->member->name ?? '未知玩家' }}</strong>
                                         @if($player->member_id === $room->host_id)
                                             <span class="badge bg-warning ms-2">房主</span>
                                         @endif
                                     </div>
-                                    <small class="text-muted">
+                                    <small class="text-muted" id="status-{{ $player->member_id }}">
                                         {{ $player->is_ready ? '已準備' : '未準備' }}
                                     </small>
+                                    @if($player->member_id === Auth::guard('member')->id())
+                                        <button class="btn btn-sm btn-outline-primary mt-1 toggle-ready-btn" data-room="{{ $room->id }}">
+                                            {{ $player->is_ready ? '取消準備' : '準備' }}
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -198,6 +203,12 @@ $(document).ready(function() {
         addChatMessage(data.sender.name, data.message, data.timestamp);
     });
 
+    // 監聽玩家準備狀態變更事件
+    channel.bind('player.ready_status_changed', function(data) {
+        updatePlayerReadyStatus(data.player.id, data.is_ready);
+        addSystemMessage(data.message);
+    });
+
     // 聊天功能
     $('#chat-form').on('submit', function(e) {
         e.preventDefault();
@@ -248,6 +259,44 @@ $(document).ready(function() {
     function updatePlayerCount(current, max) {
         $('.badge.bg-primary').text(`${current}/${max}`);
     }
+
+    function updatePlayerReadyStatus(playerId, isReady) {
+        const readyIndicator = $(`#ready-${playerId}`);
+        const statusText = $(`#status-${playerId}`);
+        const toggleBtn = $(`.toggle-ready-btn[data-room="{{ $room->id }}"]`);
+        
+        if (readyIndicator.length) {
+            readyIndicator.removeClass('ready not-ready').addClass(isReady ? 'ready' : 'not-ready');
+        }
+        
+        if (statusText.length) {
+            statusText.text(isReady ? '已準備' : '未準備');
+        }
+        
+        if (toggleBtn.length && playerId == {{ Auth::guard('member')->id() }}) {
+            toggleBtn.text(isReady ? '取消準備' : '準備');
+        }
+    }
+
+    // 準備狀態切換功能
+    $('.toggle-ready-btn').on('click', function(e) {
+        e.preventDefault();
+        const roomId = $(this).data('room');
+        
+        $.ajax({
+            url: `/game/toggle-ready/${roomId}`,
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                // 狀態會通過 WebSocket 更新
+            },
+            error: function(xhr) {
+                console.error('切換準備狀態失敗:', xhr.responseJSON);
+            }
+        });
+    });
 
     // 離開房間功能
     $('.btn-leave-room').on('click', function(e) {

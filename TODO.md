@@ -18,6 +18,26 @@
   - 頭像顯示和個人資料
   - 自動刷新功能（每60秒）
 
+### 2025-07-31 - 玩家準備狀態 WebSocket 系統建立
+- ✅ 建立 `PlayerReadyStatusChanged` 事件
+  - 處理玩家準備狀態變更的即時廣播
+  - 包含玩家信息、準備狀態和時間戳
+
+- ✅ 更新 GameController 加入準備狀態功能
+  - 新增 `toggleReadyStatus()` 方法 - 切換玩家準備狀態
+  - 新增 `setAllPlayersReady()` 方法 - 房主可設定所有玩家準備
+  - 修正 `joinRoom()` 方法 - 新玩家預設為準備狀態
+
+- ✅ 新增路由端點
+  - `POST /game/toggle-ready/{room}` - 切換準備狀態
+  - `POST /game/set-all-ready/{room}` - 設定所有玩家準備
+
+- ✅ 更新房間視圖 (`room.blade.php`) 加入準備功能
+  - 為每個玩家添加準備狀態指示器和切換按鈕
+  - 加入 WebSocket 監聽 `player.ready_status_changed` 事件
+  - 即時更新準備狀態指示器和按鈕文字
+  - 新玩家加入時自動設為準備狀態並廣播
+
 ### 2025-07-31 - Laravel Reverb 即時通訊系統建立
 - ✅ 建立廣播頻道系統 (`routes/channels.php`)
   - 會員私人頻道：`App.Models.Member.{id}`
