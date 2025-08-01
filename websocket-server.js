@@ -21,46 +21,43 @@ const server = http.createServer((req, res) => {
             }
         });
     } else if (req.url === '/ws' || req.url === '/') {
-        // 檢查是否為 WebSocket 升級請求
-        const upgrade = req.headers.upgrade;
-        const connection = req.headers.connection;
+        // 參考 Cloudflare Workers 文檔的 WebSocket 處理方式
+        const upgradeHeader = req.headers.upgrade;
         
-        if (upgrade && upgrade.toLowerCase() === 'websocket' && 
-            connection && connection.toLowerCase().includes('upgrade')) {
-            
-            console.log('收到 WebSocket 升級請求');
-            
-            // 生成 WebSocket 密鑰響應
-            const key = req.headers['sec-websocket-key'];
-            const accept = require('crypto')
-                .createHash('sha1')
-                .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
-                .digest('base64');
-            
-            res.writeHead(101, {
-                'Upgrade': 'websocket',
-                'Connection': 'Upgrade',
-                'Sec-WebSocket-Accept': accept,
-                'Sec-WebSocket-Protocol': req.headers['sec-websocket-protocol'] || ''
-            });
-            res.end();
-            
-            // 使用 WebSocketServer 處理升級
-            const wss = new WebSocketServer({ noServer: true });
-            
-            wss.on('connection', function connection(ws) {
-                handleWebSocketConnection(ws);
-            });
-            
-            wss.handleUpgrade(req, req.socket, Buffer.alloc(0), function done(ws) {
-                wss.emit('connection', ws, req);
-            });
-            
-        } else {
+        if (!upgradeHeader || upgradeHeader !== 'websocket') {
             // 普通 HTTP 請求
             res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end('WebSocket endpoint - 請使用 WebSocket 協議連接');
+            return;
         }
+        
+        console.log('收到 WebSocket 升級請求');
+        
+        // 生成 WebSocket 密鑰響應
+        const key = req.headers['sec-websocket-key'];
+        const accept = require('crypto')
+            .createHash('sha1')
+            .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
+            .digest('base64');
+        
+        res.writeHead(101, {
+            'Upgrade': 'websocket',
+            'Connection': 'Upgrade',
+            'Sec-WebSocket-Accept': accept,
+            'Sec-WebSocket-Protocol': req.headers['sec-websocket-protocol'] || ''
+        });
+        res.end();
+        
+        // 使用 WebSocketServer 處理升級
+        const wss = new WebSocketServer({ noServer: true });
+        
+        wss.on('connection', function connection(ws) {
+            handleWebSocketConnection(ws);
+        });
+        
+        wss.handleUpgrade(req, req.socket, Buffer.alloc(0), function done(ws) {
+            wss.emit('connection', ws, req);
+        });
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');

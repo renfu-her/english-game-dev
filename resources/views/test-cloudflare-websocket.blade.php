@@ -71,7 +71,7 @@
         <h3>測試說明</h3>
         <p>此頁面將測試通過 Cloudflare 的 WebSocket 連接：</p>
         <ul>
-            <li>使用 Cloudflare 域名: ai-tracks.com</li>
+                         <li>使用 Cloudflare 域名: english-game.ai-tracks.com</li>
             <li>WebSocket 路徑: /ws</li>
             <li>協議: WSS (Cloudflare 自動處理 SSL)</li>
             <li>測試連接狀態和消息傳輸</li>
@@ -98,10 +98,10 @@
             addMessage('🚀 開始測試 Cloudflare WebSocket 連接...');
             
             // 使用 Cloudflare 域名和 /ws 路徑
-            const wsUrl = 'wss://ai-tracks.com/ws';
+                         const wsUrl = 'wss://english-game.ai-tracks.com/ws';
             
             addMessage(`📍 連接地址: ${wsUrl}`);
-            addMessage(`🌐 當前域名: ai-tracks.com`);
+                         addMessage(`🌐 當前域名: english-game.ai-tracks.com`);
             addMessage(`🔒 協議: WSS (Cloudflare SSL)`);
             
             try {
@@ -169,7 +169,7 @@
                     data: {
                         text: '這是一個通過 Cloudflare 的測試訊息',
                         timestamp: new Date().toISOString(),
-                        domain: 'ai-tracks.com'
+                                                 domain: 'english-game.ai-tracks.com'
                     }
                 };
                 ws.send(JSON.stringify(message));
