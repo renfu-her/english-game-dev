@@ -127,10 +127,7 @@
             });
 
             $('#testNativeWebSocket').click(function() {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const host = window.location.hostname;
-                const port = '8888';
-                const wsUrl = `${protocol}//${host}:${port}`;
+                const wsUrl = 'ws://172.236.150.230:8888';
                 
                 addMessage(`🔌 嘗試原生 WebSocket 連接到 ${wsUrl}...`);
                 
