@@ -18,6 +18,13 @@
   - 頭像顯示和個人資料
   - 自動刷新功能（每60秒）
 
+### 2025-08-01 - 房間設定欄位修正
+- ✅ 修正 `settings` 欄位資料庫錯誤
+  - 建立遷移檔案修改 `settings` 欄位允許 NULL 值
+  - 更新 `createRoom()` 方法加入 `settings` 欄位設定
+  - 包含完整的房間設定資訊（分類、題目數量、難度、時間限制等）
+  - 解決 `SQLSTATE[HY000]: General error: 1364 Field 'settings' doesn't have a default value` 錯誤
+
 ### 2025-08-01 - 房間代碼生成功能修正
 - ✅ 修正 `createRoom()` 方法中的房間代碼生成問題
   - 加入自動生成唯一房間代碼功能
