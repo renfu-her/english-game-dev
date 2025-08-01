@@ -39,7 +39,8 @@ class PlayerJoinedRoom implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PresenceChannel('room.' . $this->room->id),
+            new Channel('room.' . $this->room->id),
+            new Channel('game.lobby'),
         ];
     }
 

@@ -51,6 +51,10 @@ Route::get('/test-websocket', function () {
     return view('test-websocket');
 });
 
+Route::get('/test-simple', function () {
+    return view('test-simple');
+});
+
 Route::post('/test-broadcast', function () {
     broadcast(new \App\Events\TestEvent());
     return response()->json(['success' => true]);

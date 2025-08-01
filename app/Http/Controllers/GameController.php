@@ -207,8 +207,11 @@ class GameController extends Controller
         // 刪除玩家記錄
         $player->delete();
 
+        // 重新載入房間以獲取最新的玩家數量
+        $room->refresh();
+
         // 廣播玩家離開房間事件
-        broadcast(new PlayerLeftRoom($room, $member))->toOthers();
+        broadcast(new PlayerLeftRoom($room, $member));
         
         // 廣播會員狀態變更事件
         broadcast(new MemberStatusChanged($member, 'online'));

@@ -41,7 +41,7 @@ class MemberStatusChanged implements ShouldBroadcast
         ];
 
         if ($this->roomId) {
-            $channels[] = new PresenceChannel('room.' . $this->roomId);
+            $channels[] = new Channel('room.' . $this->roomId);
         }
 
         return $channels;

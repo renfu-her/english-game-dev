@@ -48,6 +48,9 @@
   - 連接狀態監控
   - 錯誤處理和日誌記錄
   - 添加連接日誌以便調試
+  - 添加 HTTP 廣播端點支援
+  - 創建簡單測試頁面避免瀏覽器擴展干擾
+  - 修復 PresenceChannel 問題，改用 Channel 以支援自定義 WebSocket 服務器
 
 ### 2025-08-01 - WebSocket 連接問題修復
 - ✅ 發現並修復 WebSocket 連接問題
