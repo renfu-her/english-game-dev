@@ -18,6 +18,35 @@
   - 頭像顯示和個人資料
   - 自動刷新功能（每60秒）
 
+### 2025-08-01 - 完整 WebSocket 廣播系統建立
+- ✅ 建立完整的 WebSocket 廣播事件系統
+  - `RoomCreated` - 房間建立事件，廣播到所有玩家
+  - `RoomDeleted` - 房間刪除事件，廣播到所有玩家
+  - `RoomStatusChanged` - 房間狀態變更事件（等待中→遊戲中→已結束）
+  - `MemberStatusChanged` - 會員狀態變更事件（上線、離線、在房間中、遊戲中、已準備等）
+
+- ✅ 更新 GameController 加入完整廣播邏輯
+  - 建立房間時廣播 `RoomCreated` 和 `MemberStatusChanged`
+  - 加入房間時廣播 `PlayerJoinedRoom`、`PlayerReadyStatusChanged` 和 `MemberStatusChanged`
+  - 開始遊戲時廣播 `RoomStatusChanged` 和 `GameStarted`
+  - 離開房間時廣播 `PlayerLeftRoom`、`MemberStatusChanged` 和 `RoomDeleted`（如果房間空了）
+  - 切換準備狀態時廣播 `PlayerReadyStatusChanged` 和 `MemberStatusChanged`
+
+- ✅ 更新遊戲大廳視圖加入即時監聽
+  - 監聽 `room.created` - 動態添加新房間到列表
+  - 監聽 `room.deleted` - 動態移除已關閉的房間
+  - 監聽 `room.status_changed` - 即時更新房間狀態標籤
+  - 監聽 `member.status_changed` - 顯示會員狀態變更通知
+  - 加入通知系統，顯示即時消息
+
+- ✅ 更新房間視圖加入會員狀態監聽
+  - 監聽 `member.status_changed` - 在聊天室顯示會員狀態變更
+
+- ✅ 頻道設定優化
+  - `game.lobby` - 所有已認證會員可訂閱，接收全局房間和會員狀態變更
+  - `room.{roomId}` - 房間內玩家可訂閱，接收房間內事件
+  - 確保事件廣播到正確的頻道
+
 ### 2025-08-01 - WebSocket 即時玩家狀態更新修正
 - ✅ 修正玩家加入/離開房間的即時更新問題
   - 移除 `location.reload()` 改用動態 DOM 更新
