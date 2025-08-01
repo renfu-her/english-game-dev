@@ -105,7 +105,7 @@ function broadcastToChannel(channel, event, data) {
 }
 
 // 啟動服務器
-const PORT = 8080;
+const PORT = 8888;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`WebSocket 服務器運行在 ws://localhost:${PORT}`);
 });
