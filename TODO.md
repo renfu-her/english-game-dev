@@ -51,6 +51,13 @@
   - 添加 HTTP 廣播端點支援
   - 創建簡單測試頁面避免瀏覽器擴展干擾
   - 修復 PresenceChannel 問題，改用 Channel 以支援自定義 WebSocket 服務器
+  - 設置 PM2 進程管理，支援自動重啟和熱重載
+  - 配置 Cloudflare WebSocket 支援
+    - 修改前端連接使用域名而非 IP
+    - 修改服務器監聽標準 HTTP 端口
+    - 支援自動 SSL/WSS 協議切換
+    - 配置 WebSocket 路徑為 `/ws`
+    - 使用 `wss://ai-tracks.com/ws` 連接
 
 ### 2025-08-01 - WebSocket 連接問題修復
 - ✅ 發現並修復 WebSocket 連接問題

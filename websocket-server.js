@@ -20,6 +20,10 @@ const server = http.createServer((req, res) => {
                 res.end(JSON.stringify({ success: false, error: error.message }));
             }
         });
+    } else if (req.url === '/ws') {
+        // WebSocket 升級請求
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('WebSocket endpoint');
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
@@ -127,12 +131,12 @@ function broadcastToChannel(channel, event, data) {
 }
 
 // 啟動服務器
-const PORT = 8888;
+const PORT = process.env.PORT || 80; // 使用環境變數或默認 80 端口
 const HOST = '0.0.0.0'; // 監聽所有網路介面
 server.listen(PORT, HOST, () => {
-    console.log(`WebSocket 服務器運行在 ws://0.0.0.0:${PORT}`);
+    console.log(`WebSocket 服務器運行在端口 ${PORT}`);
     console.log(`本地連接: ws://localhost:${PORT}`);
-    console.log(`外部連接: ws://172.236.150.230:${PORT}`);
+    console.log(`Cloudflare 代理: 自動處理 WebSocket 流量`);
 });
 
 // 導出廣播函數供其他模組使用

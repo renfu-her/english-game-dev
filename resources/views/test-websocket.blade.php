@@ -37,8 +37,8 @@
             
             function connectWebSocket() {
                 try {
-                    // 使用固定的服務器 IP 地址
-                    const wsUrl = 'ws://172.236.150.230:8888';
+                    // 使用 Cloudflare 域名和 /ws 路徑
+                    const wsUrl = 'wss://ai-tracks.com/ws';
                     
                     console.log('嘗試連接到 WebSocket 服務器:', wsUrl);
                     ws = new WebSocket(wsUrl);
@@ -127,7 +127,7 @@
             });
 
             $('#testNativeWebSocket').click(function() {
-                const wsUrl = 'ws://172.236.150.230:8888';
+                const wsUrl = 'wss://ai-tracks.com/ws';
                 
                 addMessage(`🔌 嘗試原生 WebSocket 連接到 ${wsUrl}...`);
                 
