@@ -228,17 +228,22 @@
 @endsection
 
 @push('scripts')
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script src="https://unpkg.com/@soketi/soketi-js@1.0.0/dist/soketi.js"></script>
 <script>
 $(document).ready(function() {
-    // 初始化 Pusher
-    const pusher = new Pusher('{{ config("broadcasting.connections.pusher.key") }}', {
-        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
-        encrypted: true
+    // 初始化 Laravel Reverb
+    const reverb = new window.Soketi({
+        key: '{{ config("broadcasting.connections.reverb.key") }}',
+        wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
+        wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
+        wssPort: {{ config("broadcasting.connections.reverb.options.port") }},
+        forceTLS: false,
+        enabledTransports: ['ws', 'wss'],
+        disableStats: true,
     });
 
     // 訂閱遊戲大廳頻道
-    const lobbyChannel = pusher.subscribe('game.lobby');
+    const lobbyChannel = reverb.subscribe('game.lobby');
 
     // 監聽房間建立事件
     lobbyChannel.bind('room.created', function(data) {
