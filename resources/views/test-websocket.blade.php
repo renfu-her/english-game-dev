@@ -37,8 +37,14 @@
             
             function connectWebSocket() {
                 try {
-                    console.log('嘗試連接到 WebSocket 服務器: ws://localhost:8888');
-                    ws = new WebSocket('ws://localhost:8888');
+                    // 動態獲取當前主機的 IP 地址
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const host = window.location.hostname;
+                    const port = '8888';
+                    const wsUrl = `${protocol}//${host}:${port}`;
+                    
+                    console.log('嘗試連接到 WebSocket 服務器:', wsUrl);
+                    ws = new WebSocket(wsUrl);
                     
                     ws.onopen = function() {
                         $('#status').removeClass('disconnected').addClass('connected').text('連接狀態: 已連接');
@@ -124,10 +130,15 @@
             });
 
             $('#testNativeWebSocket').click(function() {
-                addMessage('🔌 嘗試原生 WebSocket 連接到 ws://localhost:8888...');
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.hostname;
+                const port = '8888';
+                const wsUrl = `${protocol}//${host}:${port}`;
+                
+                addMessage(`🔌 嘗試原生 WebSocket 連接到 ${wsUrl}...`);
                 
                 try {
-                    const ws = new WebSocket('ws://localhost:8888');
+                    const ws = new WebSocket(wsUrl);
                     
                     ws.onopen = function() {
                         addMessage('✅ 原生 WebSocket 連接成功！');

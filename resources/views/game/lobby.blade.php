@@ -237,8 +237,14 @@ $(document).ready(function() {
     
     function connectWebSocket() {
         try {
-            console.log('嘗試連接到 WebSocket 服務器: ws://localhost:8888');
-            ws = new WebSocket('ws://localhost:8888');
+            // 動態獲取當前主機的 IP 地址
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.hostname;
+            const port = '8888';
+            const wsUrl = `${protocol}//${host}:${port}`;
+            
+            console.log('嘗試連接到 WebSocket 服務器:', wsUrl);
+            ws = new WebSocket(wsUrl);
             
             ws.onopen = function() {
                 console.log('WebSocket 連接成功');
