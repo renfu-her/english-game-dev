@@ -102,6 +102,29 @@
                 $('#messages').empty();
             });
 
+            $('#testNativeWebSocket').click(function() {
+                addMessage('🔌 嘗試原生 WebSocket 連接到 ws://localhost:8080...');
+                
+                try {
+                    const ws = new WebSocket('ws://localhost:8080');
+                    
+                    ws.onopen = function() {
+                        addMessage('✅ 原生 WebSocket 連接成功！');
+                        ws.close();
+                    };
+                    
+                    ws.onerror = function(error) {
+                        addMessage('❌ 原生 WebSocket 連接失敗: ' + error);
+                    };
+                    
+                    ws.onclose = function() {
+                        addMessage('🔌 原生 WebSocket 連接已關閉');
+                    };
+                } catch (error) {
+                    addMessage('❌ 原生 WebSocket 錯誤: ' + error.message);
+                }
+            });
+
             function addMessage(text) {
                 const time = new Date().toLocaleTimeString();
                 const messageHtml = `<div class="message"><small>${time}</small><br>${text}</div>`;
