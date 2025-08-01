@@ -61,6 +61,8 @@
   - 參考 Cloudflare Workers WebSocket 處理方式
   - 改進 WebSocket 升級請求處理
   - 支援 Cloudflare 代理的 WebSocket 連接
+  - 修改 `game/play.blade.php` 移除 Pusher.js 依賴
+  - 統一所有遊戲頁面使用純 JavaScript WebSocket
 
 ### 2025-08-01 - WebSocket 連接問題修復
 - ✅ 發現並修復 WebSocket 連接問題

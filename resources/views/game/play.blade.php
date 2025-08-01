@@ -116,7 +116,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 $(document).ready(function() {
     let currentQuestion = 0;
@@ -124,25 +123,81 @@ $(document).ready(function() {
     let timer = null;
     let timeLeft = {{ $room->time_limit }};
     let gameStarted = false;
-
-    // 初始化 Pusher
-    const pusher = new Pusher('{{ config("broadcasting.connections.pusher.key") }}', {
-        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
-        encrypted: true
-    });
-
-    // 訂閱遊戲頻道
-    const channel = pusher.subscribe('game.{{ $room->id }}');
-
-    // 監聽題目顯示事件
-    channel.bind('question.displayed', function(data) {
-        displayQuestion(data.question, data.question_number, data.total_questions);
-        startTimer(data.time_limit);
-    });
-
-    // 監聽聊天訊息事件
-    channel.bind('chat.message', function(data) {
-        addChatMessage(data.sender.name, data.message, data.timestamp);
+    
+    // 純 JavaScript WebSocket 實現
+    let ws = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    
+    function connectWebSocket() {
+        try {
+            // 使用 Cloudflare 域名和 /ws 路徑
+            const wsUrl = 'wss://ai-tracks.com/ws';
+            
+            console.log('嘗試連接到 WebSocket 服務器:', wsUrl);
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('WebSocket 連接成功');
+                reconnectAttempts = 0;
+                
+                // 訂閱遊戲頻道
+                subscribeToChannel('game.{{ $room->id }}');
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket 連接關閉');
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 2000);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket 錯誤:', error);
+            };
+            
+        } catch (error) {
+            console.error('WebSocket 連接失敗:', error);
+        }
+    }
+    
+    function subscribeToChannel(channel) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            const message = {
+                event: 'pusher:subscribe',
+                data: {
+                    channel: channel
+                }
+            };
+            ws.send(JSON.stringify(message));
+        }
+    }
+    
+    function handleWebSocketMessage(data) {
+        console.log('收到 WebSocket 訊息:', data);
+        
+        if (data.event === 'question.displayed') {
+            displayQuestion(data.data.question, data.data.question_number, data.data.total_questions);
+            startTimer(data.data.time_limit);
+        } else if (data.event === 'chat.message') {
+            addChatMessage(data.data.sender.name, data.data.message, data.data.timestamp);
+        }
+    }
+    
+    // 初始化連接
+    connectWebSocket();
+    
+    // 頁面卸載時關閉連接
+    $(window).on('beforeunload', function() {
+        if (ws) {
+            ws.close();
+        }
     });
 
     // 聊天功能
