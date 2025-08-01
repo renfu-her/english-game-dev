@@ -168,61 +168,93 @@
 @endsection
 
 @push('scripts')
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 $(document).ready(function() {
-    // 初始化 Laravel Reverb (使用 Pusher 協議)
-    const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
-        wsHost: 'localhost',
-        wsPort: 8080,
-        wssPort: 8080,
-        forceTLS: false,
-        enabledTransports: ['ws'], // 只使用 WS，不使用 WSS
-        disableStats: true,
-        cluster: 'mt1', // 任意值，因為我們使用自定義主機
-        encrypted: false, // 禁用加密
-        useTLS: false, // 強制不使用 TLS
-    });
-
-    // 訂閱房間頻道
-    const channel = pusher.subscribe('room.{{ $room->id }}');
-
-    // 監聽玩家加入事件
-    channel.bind('player.joined', function(data) {
-        addSystemMessage(data.message);
-        updatePlayerCount(data.player_count, data.max_players);
-        addPlayerToList(data.player);
-    });
-
-    // 監聽玩家離開事件
-    channel.bind('player.left', function(data) {
-        addSystemMessage(data.message);
-        updatePlayerCount(data.player_count, data.max_players);
-        removePlayerFromList(data.player.id);
-    });
-
-    // 監聽遊戲開始事件
-    channel.bind('game.started', function(data) {
-        addSystemMessage('遊戲開始！正在跳轉到遊戲頁面...');
-        setTimeout(() => {
-            window.location.href = '{{ route("game.play", $room->id) }}';
-        }, 2000);
-    });
-
-    // 監聽聊天訊息事件
-    channel.bind('chat.message', function(data) {
-        addChatMessage(data.sender.name, data.message, data.timestamp);
-    });
-
-    // 監聽玩家準備狀態變更事件
-    channel.bind('player.ready_status_changed', function(data) {
-        updatePlayerReadyStatus(data.player.id, data.is_ready);
-        addSystemMessage(data.message);
-    });
-
-    // 監聽會員狀態變更事件
-    channel.bind('member.status_changed', function(data) {
-        addSystemMessage(data.message);
+    // 純 JavaScript WebSocket 實現
+    let ws = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    
+    function connectWebSocket() {
+        try {
+            ws = new WebSocket('ws://localhost:8080');
+            
+            ws.onopen = function() {
+                console.log('WebSocket 連接成功');
+                reconnectAttempts = 0;
+                
+                // 訂閱房間頻道
+                subscribeToChannel('room.{{ $room->id }}');
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket 連接關閉');
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 2000);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket 錯誤:', error);
+            };
+            
+        } catch (error) {
+            console.error('WebSocket 連接失敗:', error);
+        }
+    }
+    
+    function subscribeToChannel(channel) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            const message = {
+                event: 'pusher:subscribe',
+                data: {
+                    channel: channel
+                }
+            };
+            ws.send(JSON.stringify(message));
+        }
+    }
+    
+    function handleWebSocketMessage(data) {
+        console.log('收到 WebSocket 訊息:', data);
+        
+        if (data.event === 'player.joined') {
+            addSystemMessage(data.data.message);
+            updatePlayerCount(data.data.player_count, data.data.max_players);
+            addPlayerToList(data.data.player);
+        } else if (data.event === 'player.left') {
+            addSystemMessage(data.data.message);
+            updatePlayerCount(data.data.player_count, data.data.max_players);
+            removePlayerFromList(data.data.player.id);
+        } else if (data.event === 'game.started') {
+            addSystemMessage('遊戲開始！正在跳轉到遊戲頁面...');
+            setTimeout(() => {
+                window.location.href = '{{ route("game.play", $room->id) }}';
+            }, 2000);
+        } else if (data.event === 'chat.message') {
+            addChatMessage(data.data.sender.name, data.data.message, data.data.timestamp);
+        } else if (data.event === 'player.ready_status_changed') {
+            updatePlayerReadyStatus(data.data.player.id, data.data.is_ready);
+            addSystemMessage(data.data.message);
+        } else if (data.event === 'member.status_changed') {
+            addSystemMessage(data.data.message);
+        }
+    }
+    
+    // 初始化連接
+    connectWebSocket();
+    
+    // 頁面卸載時關閉連接
+    $(window).on('beforeunload', function() {
+        if (ws) {
+            ws.close();
+        }
     });
 
     // 聊天功能

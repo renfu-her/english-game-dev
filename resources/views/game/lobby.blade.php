@@ -228,46 +228,84 @@
 @endsection
 
 @push('scripts')
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 $(document).ready(function() {
-    // 初始化 Laravel Reverb (使用 Pusher 協議)
-    const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
-        wsHost: 'localhost',
-        wsPort: 8080,
-        wssPort: 8080,
-        forceTLS: false,
-        enabledTransports: ['ws'], // 只使用 WS，不使用 WSS
-        disableStats: true,
-        cluster: 'mt1', // 任意值，因為我們使用自定義主機
-        encrypted: false, // 禁用加密
-        useTLS: false, // 強制不使用 TLS
-    });
-
-    // 訂閱遊戲大廳頻道
-    const lobbyChannel = pusher.subscribe('game.lobby');
-
-    // 監聽房間建立事件
-    lobbyChannel.bind('room.created', function(data) {
-        addRoomToList(data.room);
-        showNotification(data.message, 'success');
-    });
-
-    // 監聽房間刪除事件
-    lobbyChannel.bind('room.deleted', function(data) {
-        removeRoomFromList(data.room_id);
-        showNotification(data.message, 'info');
-    });
-
-    // 監聽房間狀態變更事件
-    lobbyChannel.bind('room.status_changed', function(data) {
-        updateRoomStatus(data.room_id, data.new_status, data.new_status_text);
-        showNotification(data.message, 'info');
-    });
-
-    // 監聽會員狀態變更事件
-    lobbyChannel.bind('member.status_changed', function(data) {
-        showNotification(data.message, 'info');
+    // 純 JavaScript WebSocket 實現
+    let ws = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    
+    function connectWebSocket() {
+        try {
+            ws = new WebSocket('ws://localhost:8080');
+            
+            ws.onopen = function() {
+                console.log('WebSocket 連接成功');
+                reconnectAttempts = 0;
+                
+                // 訂閱遊戲大廳頻道
+                subscribeToChannel('game.lobby');
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket 連接關閉');
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 2000);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket 錯誤:', error);
+            };
+            
+        } catch (error) {
+            console.error('WebSocket 連接失敗:', error);
+        }
+    }
+    
+    function subscribeToChannel(channel) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            const message = {
+                event: 'pusher:subscribe',
+                data: {
+                    channel: channel
+                }
+            };
+            ws.send(JSON.stringify(message));
+        }
+    }
+    
+    function handleWebSocketMessage(data) {
+        console.log('收到 WebSocket 訊息:', data);
+        
+        if (data.event === 'room.created') {
+            addRoomToList(data.data.room);
+            showNotification(data.data.message, 'success');
+        } else if (data.event === 'room.deleted') {
+            removeRoomFromList(data.data.room_id);
+            showNotification(data.data.message, 'info');
+        } else if (data.event === 'room.status_changed') {
+            updateRoomStatus(data.data.room_id, data.data.new_status, data.data.new_status_text);
+            showNotification(data.data.message, 'info');
+        } else if (data.event === 'member.status_changed') {
+            showNotification(data.data.message, 'info');
+        }
+    }
+    
+    // 初始化連接
+    connectWebSocket();
+    
+    // 頁面卸載時關閉連接
+    $(window).on('beforeunload', function() {
+        if (ws) {
+            ws.close();
+        }
     });
 
     function addRoomToList(room) {

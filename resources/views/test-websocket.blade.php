@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket 測試</title>
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script src="https://js.pusher.com/7.0.3/pusher.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
@@ -102,6 +102,7 @@
                 $('#messages').empty();
             });
 
+            // 添加原生 WebSocket 替代方案
             $('#testNativeWebSocket').click(function() {
                 addMessage('🔌 嘗試原生 WebSocket 連接到 ws://localhost:8080...');
                 
@@ -110,7 +111,21 @@
                     
                     ws.onopen = function() {
                         addMessage('✅ 原生 WebSocket 連接成功！');
-                        ws.close();
+                        
+                        // 嘗試訂閱頻道
+                        const subscribeMessage = {
+                            event: 'pusher:subscribe',
+                            data: {
+                                channel: 'test-channel'
+                            }
+                        };
+                        
+                        ws.send(JSON.stringify(subscribeMessage));
+                        addMessage('📡 已發送訂閱請求到 test-channel');
+                    };
+                    
+                    ws.onmessage = function(event) {
+                        addMessage('📨 收到訊息: ' + event.data);
                     };
                     
                     ws.onerror = function(error) {
