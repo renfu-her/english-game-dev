@@ -213,6 +213,11 @@ $(document).ready(function() {
         addSystemMessage(data.message);
     });
 
+    // 監聽會員狀態變更事件
+    channel.bind('member.status_changed', function(data) {
+        addSystemMessage(data.message);
+    });
+
     // 聊天功能
     $('#chat-form').on('submit', function(e) {
         e.preventDefault();

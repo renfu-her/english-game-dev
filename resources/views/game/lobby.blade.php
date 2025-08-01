@@ -225,4 +225,145 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+$(document).ready(function() {
+    // 初始化 Pusher
+    const pusher = new Pusher('{{ config("broadcasting.connections.pusher.key") }}', {
+        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
+        encrypted: true
+    });
+
+    // 訂閱遊戲大廳頻道
+    const lobbyChannel = pusher.subscribe('game.lobby');
+
+    // 監聽房間建立事件
+    lobbyChannel.bind('room.created', function(data) {
+        addRoomToList(data.room);
+        showNotification(data.message, 'success');
+    });
+
+    // 監聽房間刪除事件
+    lobbyChannel.bind('room.deleted', function(data) {
+        removeRoomFromList(data.room_id);
+        showNotification(data.message, 'info');
+    });
+
+    // 監聽房間狀態變更事件
+    lobbyChannel.bind('room.status_changed', function(data) {
+        updateRoomStatus(data.room_id, data.new_status, data.new_status_text);
+        showNotification(data.message, 'info');
+    });
+
+    // 監聽會員狀態變更事件
+    lobbyChannel.bind('member.status_changed', function(data) {
+        showNotification(data.message, 'info');
+    });
+
+    function addRoomToList(room) {
+        const roomHtml = `
+            <div class="col-md-6 mb-3" id="room-${room.id}">
+                <div class="card room-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">${room.name}</h6>
+                            <span class="badge bg-success">${room.status === 'waiting' ? '等待中' : room.status}</span>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> 房主: ${room.host.name}
+                            </small>
+                            <br>
+                            <small class="text-muted">
+                                <i class="bi bi-hash"></i> 房間代碼: <code>${room.code}</code>
+                            </small>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-primary me-1">${room.category.name}</span>
+                            <span class="badge difficulty-badge difficulty-${room.difficulty}">
+                                ${room.difficulty.charAt(0).toUpperCase() + room.difficulty.slice(1)}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="small text-muted">玩家</div>
+                                    <div class="fw-bold">${room.current_players}/${room.max_players}</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">題目</div>
+                                    <div class="fw-bold">${room.question_count}</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">時間</div>
+                                    <div class="fw-bold">${room.time_limit}秒</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <form method="POST" action="/game/join-room/${room.id}">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-door-open"></i> 加入房間
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 添加到房間列表的開頭
+        $('.row:has(.room-card)').prepend(roomHtml);
+    }
+
+    function removeRoomFromList(roomId) {
+        $(`#room-${roomId}`).fadeOut(300, function() {
+            $(this).remove();
+        });
+    }
+
+    function updateRoomStatus(roomId, newStatus, newStatusText) {
+        const roomCard = $(`#room-${roomId}`);
+        const statusBadge = roomCard.find('.badge.bg-success');
+        
+        if (newStatus === 'waiting') {
+            statusBadge.removeClass('bg-warning bg-danger').addClass('bg-success').text('等待中');
+        } else if (newStatus === 'playing') {
+            statusBadge.removeClass('bg-success bg-danger').addClass('bg-warning').text('遊戲中');
+        } else if (newStatus === 'finished') {
+            statusBadge.removeClass('bg-success bg-warning').addClass('bg-danger').text('已結束');
+        }
+    }
+
+    function showNotification(message, type = 'info') {
+        // 建立通知元素
+        const notification = $(`
+            <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+        
+        // 添加到頁面
+        $('body').append(notification);
+        
+        // 3秒後自動移除
+        setTimeout(() => {
+            notification.fadeOut(300, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+});
+</script>
+@endpush 

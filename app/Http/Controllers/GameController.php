@@ -10,6 +10,10 @@ use App\Events\PlayerLeftRoom;
 use App\Events\GameStarted;
 use App\Events\ChatMessage;
 use App\Events\PlayerReadyStatusChanged;
+use App\Events\RoomCreated;
+use App\Events\RoomDeleted;
+use App\Events\RoomStatusChanged;
+use App\Events\MemberStatusChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -84,9 +88,12 @@ class GameController extends Controller
             'is_ready' => true,
         ]);
 
-        // 廣播玩家加入房間事件
+        // 廣播房間建立事件
+        broadcast(new RoomCreated($room));
+        
+        // 廣播會員狀態變更事件
         $member = Auth::guard('member')->user();
-        broadcast(new PlayerJoinedRoom($room, $member))->toOthers();
+        broadcast(new MemberStatusChanged($member, 'in_room', $room->id));
 
         return redirect()->route('game.room', $room->id);
     }
@@ -121,6 +128,9 @@ class GameController extends Controller
 
         // 廣播玩家準備狀態事件
         broadcast(new PlayerReadyStatusChanged($room, $member, true));
+        
+        // 廣播會員狀態變更事件
+        broadcast(new MemberStatusChanged($member, 'in_room', $room->id));
 
         return redirect()->route('game.room', $room->id);
     }
@@ -142,7 +152,11 @@ class GameController extends Controller
             return redirect()->route('game.room', $room->id)->with('error', '至少需要2名玩家才能開始遊戲');
         }
 
+        $oldStatus = $room->status;
         $room->update(['status' => 'playing']);
+        
+        // 廣播房間狀態變更事件
+        broadcast(new RoomStatusChanged($room, $oldStatus, 'playing'));
         
         // 廣播遊戲開始事件
         broadcast(new GameStarted($room));
@@ -195,10 +209,19 @@ class GameController extends Controller
 
         // 廣播玩家離開房間事件
         broadcast(new PlayerLeftRoom($room, $member))->toOthers();
+        
+        // 廣播會員狀態變更事件
+        broadcast(new MemberStatusChanged($member, 'online'));
 
         // 如果房間空了，刪除房間
         if ($room->players()->count() === 0) {
+            $roomName = $room->name;
+            $roomId = $room->id;
             $room->delete();
+            
+            // 廣播房間刪除事件
+            broadcast(new RoomDeleted($roomId, $roomName));
+            
             return redirect()->route('game.lobby')->with('success', '房間已關閉');
         }
 
@@ -229,6 +252,10 @@ class GameController extends Controller
 
         // 廣播準備狀態變更事件
         broadcast(new PlayerReadyStatusChanged($room, $member, $newReadyStatus));
+        
+        // 廣播會員狀態變更事件
+        $status = $newReadyStatus ? 'ready' : 'not_ready';
+        broadcast(new MemberStatusChanged($member, $status, $room->id));
 
         return response()->json([
             'success' => true,
