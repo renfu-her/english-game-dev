@@ -37,7 +37,7 @@
             
             function connectWebSocket() {
                 try {
-                    ws = new WebSocket('ws://localhost:8080');
+                    ws = new WebSocket('ws://localhost:8888');
                     
                     ws.onopen = function() {
                         $('#status').removeClass('disconnected').addClass('connected').text('連接狀態: 已連接');
@@ -123,10 +123,10 @@
             });
 
             $('#testNativeWebSocket').click(function() {
-                addMessage('🔌 嘗試原生 WebSocket 連接到 ws://localhost:8080...');
+                addMessage('🔌 嘗試原生 WebSocket 連接到 ws://localhost:8888...');
                 
                 try {
-                    const ws = new WebSocket('ws://localhost:8080');
+                    const ws = new WebSocket('ws://localhost:8888');
                     
                     ws.onopen = function() {
                         addMessage('✅ 原生 WebSocket 連接成功！');
