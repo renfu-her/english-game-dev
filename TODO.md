@@ -18,6 +18,33 @@
   - 頭像顯示和個人資料
   - 自動刷新功能（每60秒）
 
+### 2025-08-01 - 改用純 JavaScript WebSocket 實現
+- ✅ 完全移除 Laravel Reverb 和 Pusher.js
+  - **原因**: 解決 WSS/WS 協議不匹配問題
+  - **解決方案**: 使用純 JavaScript WebSocket 實現
+
+- ✅ 創建 Node.js WebSocket 服務器
+  - 建立 `websocket-server.js` - 簡單的 WebSocket 服務器
+  - 支援 Pusher 協議的訂閱機制
+  - 支援頻道廣播功能
+  - 運行在 `ws://localhost:8080`
+
+- ✅ 更新所有前端頁面
+  - 遊戲大廳 (`lobby.blade.php`): 移除 Pusher.js，改用原生 WebSocket
+  - 房間視圖 (`room.blade.php`): 移除 Pusher.js，改用原生 WebSocket
+  - 測試頁面 (`test-websocket.blade.php`): 移除 Pusher.js，改用原生 WebSocket
+  - 添加自動重連機制和錯誤處理
+
+- ✅ 安裝 Node.js 依賴
+  - 安裝 `ws` 套件: `npm install ws`
+  - 啟動 WebSocket 服務器: `node websocket-server.js`
+
+- ✅ 功能特性
+  - 自動重連機制（最多5次重試）
+  - 頻道訂閱和廣播
+  - 連接狀態監控
+  - 錯誤處理和日誌記錄
+
 ### 2025-08-01 - WebSocket 連接問題修復
 - ✅ 發現並修復 WebSocket 連接問題
   - **問題**: 系統使用 Laravel Reverb 但前端使用 Pusher.js

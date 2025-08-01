@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket 測試</title>
-    <script src="https://js.pusher.com/7.0.3/pusher.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
@@ -31,56 +30,77 @@
 
     <script>
         $(document).ready(function() {
-            // 初始化 Laravel Reverb (使用 Pusher 協議)
-            const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
-                wsHost: 'localhost',
-                wsPort: 8080,
-                wssPort: 8080,
-                forceTLS: false,
-                enabledTransports: ['ws'], // 只使用 WS，不使用 WSS
-                disableStats: true,
-                cluster: 'mt1', // 任意值，因為我們使用自定義主機
-                encrypted: false, // 禁用加密
-                useTLS: false, // 強制不使用 TLS
-            });
-
-            // 連接狀態監聽
-            pusher.connection.bind('connected', function() {
-                $('#status').removeClass('disconnected').addClass('connected').text('連接狀態: 已連接');
-                addMessage('✅ WebSocket 連接成功！');
-            });
-
-            pusher.connection.bind('disconnected', function() {
-                $('#status').removeClass('connected').addClass('disconnected').text('連接狀態: 已斷開');
-                addMessage('❌ WebSocket 連接斷開');
-            });
-
-            // 訂閱測試頻道
-            const testChannel = pusher.subscribe('test-channel');
+            // 純 JavaScript WebSocket 實現
+            let ws = null;
+            let reconnectAttempts = 0;
+            const maxReconnectAttempts = 5;
             
-            testChannel.bind('test-event', function(data) {
-                addMessage('📨 收到測試事件: ' + JSON.stringify(data));
-            });
-
-            // 訂閱遊戲大廳頻道
-            const lobbyChannel = pusher.subscribe('game.lobby');
+            function connectWebSocket() {
+                try {
+                    ws = new WebSocket('ws://localhost:8080');
+                    
+                    ws.onopen = function() {
+                        $('#status').removeClass('disconnected').addClass('connected').text('連接狀態: 已連接');
+                        addMessage('✅ WebSocket 連接成功！');
+                        reconnectAttempts = 0;
+                        
+                        // 訂閱測試頻道
+                        subscribeToChannel('test-channel');
+                        subscribeToChannel('game.lobby');
+                    };
+                    
+                    ws.onmessage = function(event) {
+                        const data = JSON.parse(event.data);
+                        addMessage('📨 收到訊息: ' + JSON.stringify(data));
+                        handleWebSocketMessage(data);
+                    };
+                    
+                    ws.onclose = function() {
+                        $('#status').removeClass('connected').addClass('disconnected').text('連接狀態: 已斷開');
+                        addMessage('❌ WebSocket 連接斷開');
+                        if (reconnectAttempts < maxReconnectAttempts) {
+                            reconnectAttempts++;
+                            setTimeout(connectWebSocket, 2000);
+                        }
+                    };
+                    
+                    ws.onerror = function(error) {
+                        addMessage('❌ WebSocket 錯誤: ' + error);
+                    };
+                    
+                } catch (error) {
+                    addMessage('❌ WebSocket 連接失敗: ' + error.message);
+                }
+            }
             
-            lobbyChannel.bind('room.created', function(data) {
-                addMessage('🏠 房間建立: ' + data.message);
-            });
-
-            lobbyChannel.bind('room.deleted', function(data) {
-                addMessage('🗑️ 房間刪除: ' + data.message);
-            });
-
-            lobbyChannel.bind('room.status_changed', function(data) {
-                addMessage('🔄 房間狀態變更: ' + data.message);
-            });
-
-            lobbyChannel.bind('member.status_changed', function(data) {
-                addMessage('👤 會員狀態變更: ' + data.message);
-            });
-
+            function subscribeToChannel(channel) {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const message = {
+                        event: 'pusher:subscribe',
+                        data: {
+                            channel: channel
+                        }
+                    };
+                    ws.send(JSON.stringify(message));
+                    addMessage('📡 訂閱頻道: ' + channel);
+                }
+            }
+            
+            function handleWebSocketMessage(data) {
+                if (data.event === 'room.created') {
+                    addMessage('🏠 房間建立: ' + data.data.message);
+                } else if (data.event === 'room.deleted') {
+                    addMessage('🗑️ 房間刪除: ' + data.data.message);
+                } else if (data.event === 'room.status_changed') {
+                    addMessage('🔄 房間狀態變更: ' + data.data.message);
+                } else if (data.event === 'member.status_changed') {
+                    addMessage('👤 會員狀態變更: ' + data.data.message);
+                }
+            }
+            
+            // 初始化連接
+            connectWebSocket();
+            
             // 測試按鈕
             $('#testEvent').click(function() {
                 $.ajax({
@@ -102,7 +122,6 @@
                 $('#messages').empty();
             });
 
-            // 添加原生 WebSocket 替代方案
             $('#testNativeWebSocket').click(function() {
                 addMessage('🔌 嘗試原生 WebSocket 連接到 ws://localhost:8080...');
                 
