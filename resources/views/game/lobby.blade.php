@@ -238,7 +238,7 @@ $(document).ready(function() {
     function connectWebSocket() {
         try {
             // 使用 Cloudflare 域名和 /ws 路徑
-            const wsUrl = 'wss://ai-tracks.com/ws';
+            const wsUrl = 'wss://ai-tracks.com';
             
             console.log('嘗試連接到 WebSocket 服務器:', wsUrl);
             ws = new WebSocket(wsUrl);
