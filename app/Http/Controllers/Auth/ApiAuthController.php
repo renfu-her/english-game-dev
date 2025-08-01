@@ -21,9 +21,17 @@ class ApiAuthController extends Controller
 
         $member = Member::where('email', $request->email)->first();
 
-        if (!$member || !Hash::check($request->password, $member->password)) {
+        // 檢查帳號是否存在
+        if (!$member) {
             throw ValidationException::withMessages([
-                'email' => ['提供的憑證不正確。'],
+                'email' => ['帳號沒有註冊。'],
+            ]);
+        }
+
+        // 檢查密碼是否正確
+        if (!Hash::check($request->password, $member->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['帳號或密碼輸入不正確。'],
             ]);
         }
 
@@ -45,9 +53,17 @@ class ApiAuthController extends Controller
 
         $admin = User::where('email', $request->email)->first();
 
-        if (!$admin || !Hash::check($request->password, $admin->password)) {
+        // 檢查帳號是否存在
+        if (!$admin) {
             throw ValidationException::withMessages([
-                'email' => ['提供的憑證不正確。'],
+                'email' => ['帳號沒有註冊。'],
+            ]);
+        }
+
+        // 檢查密碼是否正確
+        if (!Hash::check($request->password, $admin->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['帳號或密碼輸入不正確。'],
             ]);
         }
 

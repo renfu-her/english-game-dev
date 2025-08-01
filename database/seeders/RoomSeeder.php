@@ -30,24 +30,28 @@ class RoomSeeder extends Seeder
             '醫療英語專班',
         ];
 
+        $categories = \App\Models\Category::all();
+        
+        if ($categories->isEmpty()) {
+            $this->command->info('需要先建立分類資料');
+            return;
+        }
+
         foreach ($roomNames as $name) {
             Room::firstOrCreate(
                 ['name' => $name],
                 [
                     'code' => strtoupper(Str::random(6)),
                     'host_id' => $members->random()->id,
+                    'category_id' => $categories->random()->id,
                     'max_players' => rand(4, 8),
-                    'current_players' => rand(1, 4),
-                    'status' => ['waiting', 'playing', 'finished'][rand(0, 2)],
-                    'settings' => [
-                        'categories' => ['daily-conversation', 'travel-transport'],
-                        'question_count' => rand(10, 20),
-                        'difficulty' => ['easy', 'medium', 'hard', 'mixed'][rand(0, 3)],
-                        'time_limit' => rand(20, 45),
-                        'allow_skip' => true,
-                        'show_explanation' => true,
-                        'auto_start' => false,
-                    ],
+                    'question_count' => rand(10, 20),
+                    'difficulty' => ['easy', 'medium', 'hard'][rand(0, 2)],
+                    'time_limit' => rand(20, 45),
+                    'allow_skip' => true,
+                    'show_explanation' => true,
+                    'is_private' => false,
+                    'status' => 'waiting',
                 ]
             );
         }

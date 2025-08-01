@@ -28,11 +28,11 @@ class MemberAuthController extends Controller
         if (Auth::guard('member')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('member.dashboard'));
+            return redirect()->intended(route('home'));
         }
 
         throw ValidationException::withMessages([
-            'email' => ['提供的憑證不正確。'],
+            'email' => ['帳號或密碼錯誤'],
         ]);
     }
 
@@ -57,7 +57,7 @@ class MemberAuthController extends Controller
 
         Auth::guard('member')->login($member);
 
-        return redirect()->route('member.dashboard');
+        return redirect()->route('home');
     }
 
     public function logout(Request $request)

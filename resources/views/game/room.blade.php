@@ -1,0 +1,272 @@
+@extends('layouts.app')
+
+@section('title', $room->name . ' - 房間')
+
+@section('content')
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-door-open"></i> {{ $room->name }}
+                </h5>
+                <div>
+                    <span class="badge bg-success me-2">等待中</span>
+                    <span class="badge bg-primary">{{ $room->players->count() }}/{{ $room->max_players }}</span>
+                    <button class="btn btn-outline-danger btn-sm ms-2 btn-leave-room">
+                        <i class="bi bi-box-arrow-left"></i> 離開房間
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>房間設定</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-person"></i> 房主: {{ $room->host->name ?? '未知' }}</li>
+                            <li><i class="bi bi-tag"></i> 分類: {{ $room->category->name ?? '未分類' }}</li>
+                            <li><i class="bi bi-speedometer2"></i> 難度: 
+                                <span class="badge difficulty-badge difficulty-{{ $room->difficulty }}">
+                                    {{ ucfirst($room->difficulty) }}
+                                </span>
+                            </li>
+                            <li><i class="bi bi-question-circle"></i> 題目數量: {{ $room->question_count }}</li>
+                            <li><i class="bi bi-clock"></i> 答題時間: {{ $room->time_limit }} 秒</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>遊戲選項</h6>
+                        <ul class="list-unstyled">
+                            <li>
+                                <i class="bi bi-{{ $room->allow_skip ? 'check-circle text-success' : 'x-circle text-danger' }}"></i>
+                                允許跳過題目: {{ $room->allow_skip ? '是' : '否' }}
+                            </li>
+                            <li>
+                                <i class="bi bi-{{ $room->show_explanation ? 'check-circle text-success' : 'x-circle text-danger' }}"></i>
+                                顯示題目解釋: {{ $room->show_explanation ? '是' : '否' }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6>玩家列表</h6>
+                <div class="row">
+                    @foreach($room->players as $player)
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="player-avatar me-3">
+                                    {{ strtoupper(substr($player->member->name ?? 'U', 0, 1)) }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center">
+                                        <span class="ready-indicator {{ $player->is_ready ? 'ready' : 'not-ready' }}"></span>
+                                        <strong>{{ $player->member->name ?? '未知玩家' }}</strong>
+                                        @if($player->member_id === $room->host_id)
+                                            <span class="badge bg-warning ms-2">房主</span>
+                                        @endif
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ $player->is_ready ? '已準備' : '未準備' }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                    
+                    @for($i = $room->players->count(); $i < $room->max_players; $i++)
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                <div class="player-avatar me-3 bg-secondary">
+                                    <i class="bi bi-person-plus text-white"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="text-muted">等待玩家加入...</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
+                
+                @if($room->host_id === Auth::guard('member')->id())
+                    <div class="text-center mt-4">
+                        <form method="POST" action="{{ route('game.start-game', $room->id) }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-lg" 
+                                    {{ $room->players->count() < 2 ? 'disabled' : '' }}>
+                                <i class="bi bi-play-circle"></i> 開始遊戲
+                            </button>
+                        </form>
+                        @if($room->players->count() < 2)
+                            <div class="text-muted mt-2">至少需要 2 名玩家才能開始遊戲</div>
+                        @endif
+                    </div>
+                @else
+                    <div class="text-center mt-4">
+                        <div class="text-muted">等待房主開始遊戲...</div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-chat"></i> 聊天室
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="chat-messages" style="height: 300px; overflow-y: auto;" class="mb-3">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-chat-dots"></i>
+                        <p>開始聊天吧！</p>
+                    </div>
+                </div>
+                
+                <form id="chat-form">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="chat-input" placeholder="輸入訊息...">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> 房間資訊
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>建立時間:</strong><br>
+                    {{ $room->created_at->format('Y-m-d H:i:s') }}
+                </p>
+                <p class="mb-0">
+                    <strong>房間代碼:</strong><br>
+                    <code>{{ $room->id }}</code>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+$(document).ready(function() {
+    // 初始化 Pusher
+    const pusher = new Pusher('{{ config("broadcasting.connections.pusher.key") }}', {
+        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
+        encrypted: true
+    });
+
+    // 訂閱房間頻道
+    const channel = pusher.subscribe('room.{{ $room->id }}');
+
+    // 監聽玩家加入事件
+    channel.bind('player.joined', function(data) {
+        addSystemMessage(data.message);
+        updatePlayerCount(data.player_count, data.max_players);
+        location.reload(); // 重新載入頁面以更新玩家列表
+    });
+
+    // 監聽玩家離開事件
+    channel.bind('player.left', function(data) {
+        addSystemMessage(data.message);
+        updatePlayerCount(data.player_count, data.max_players);
+        location.reload(); // 重新載入頁面以更新玩家列表
+    });
+
+    // 監聽遊戲開始事件
+    channel.bind('game.started', function(data) {
+        addSystemMessage('遊戲開始！正在跳轉到遊戲頁面...');
+        setTimeout(() => {
+            window.location.href = '{{ route("game.play", $room->id) }}';
+        }, 2000);
+    });
+
+    // 監聽聊天訊息事件
+    channel.bind('chat.message', function(data) {
+        addChatMessage(data.sender.name, data.message, data.timestamp);
+    });
+
+    // 聊天功能
+    $('#chat-form').on('submit', function(e) {
+        e.preventDefault();
+        const message = $('#chat-input').val().trim();
+        if (message) {
+            // 發送聊天訊息到伺服器
+            $.ajax({
+                url: '{{ route("game.chat", $room->id) }}',
+                method: 'POST',
+                data: {
+                    message: message,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    $('#chat-input').val('');
+                },
+                error: function(xhr) {
+                    console.error('發送訊息失敗:', xhr.responseJSON);
+                }
+            });
+        }
+    });
+
+    function addChatMessage(sender, message, timestamp) {
+        const time = new Date(timestamp).toLocaleTimeString();
+        const messageHtml = `
+            <div class="mb-2">
+                <small class="text-muted">${time}</small><br>
+                <strong>${sender}:</strong> ${message}
+            </div>
+        `;
+        $('#chat-messages').append(messageHtml);
+        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+    }
+
+    function addSystemMessage(message) {
+        const time = new Date().toLocaleTimeString();
+        const messageHtml = `
+            <div class="mb-2">
+                <small class="text-muted">${time}</small><br>
+                <em class="text-info">${message}</em>
+            </div>
+        `;
+        $('#chat-messages').append(messageHtml);
+        $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+    }
+
+    function updatePlayerCount(current, max) {
+        $('.badge.bg-primary').text(`${current}/${max}`);
+    }
+
+    // 離開房間功能
+    $('.btn-leave-room').on('click', function(e) {
+        if (confirm('確定要離開房間嗎？')) {
+            const form = $('<form>', {
+                'method': 'POST',
+                'action': '{{ route("game.leave-room", $room->id) }}'
+            }).append($('<input>', {
+                'type': 'hidden',
+                'name': '_token',
+                'value': '{{ csrf_token() }}'
+            }));
+            $('body').append(form);
+            form.submit();
+        }
+    });
+
+    // 自動滾動到聊天底部
+    $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
+});
+</script>
+@endpush 
