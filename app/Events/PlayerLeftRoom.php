@@ -27,6 +27,7 @@ class PlayerLeftRoom implements ShouldBroadcast
     {
         $this->room = $room;
         $this->player = $player;
+        // 重新計算玩家數量，確保不包含已離開的玩家
         $this->playerCount = $room->players()->count();
     }
 

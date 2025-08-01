@@ -27,6 +27,7 @@ class PlayerJoinedRoom implements ShouldBroadcast
     {
         $this->room = $room;
         $this->player = $player;
+        // 重新計算玩家數量，確保包含新加入的玩家
         $this->playerCount = $room->players()->count();
     }
 

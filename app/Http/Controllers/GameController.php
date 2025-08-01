@@ -112,6 +112,9 @@ class GameController extends Controller
             'is_ready' => true, // 新加入的玩家預設為準備狀態
         ]);
 
+        // 重新載入房間資料以獲取最新的玩家數量
+        $room->refresh();
+
         // 廣播玩家加入房間事件
         $member = Auth::guard('member')->user();
         broadcast(new PlayerJoinedRoom($room, $member))->toOthers();

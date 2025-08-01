@@ -184,14 +184,14 @@ $(document).ready(function() {
     channel.bind('player.joined', function(data) {
         addSystemMessage(data.message);
         updatePlayerCount(data.player_count, data.max_players);
-        location.reload(); // 重新載入頁面以更新玩家列表
+        addPlayerToList(data.player);
     });
 
     // 監聽玩家離開事件
     channel.bind('player.left', function(data) {
         addSystemMessage(data.message);
         updatePlayerCount(data.player_count, data.max_players);
-        location.reload(); // 重新載入頁面以更新玩家列表
+        removePlayerFromList(data.player.id);
     });
 
     // 監聽遊戲開始事件
@@ -279,6 +279,93 @@ $(document).ready(function() {
         
         if (toggleBtn.length && playerId == {{ Auth::guard('member')->id() }}) {
             toggleBtn.text(isReady ? '取消準備' : '準備');
+        }
+    }
+
+    function addPlayerToList(player) {
+        const playerList = $('.row:has(.player-avatar)').first();
+        const maxPlayers = {{ $room->max_players }};
+        const currentPlayers = $('.row:has(.player-avatar) .col-md-6').length;
+        const currentUserId = {{ Auth::guard('member')->id() }};
+        const isHost = {{ $room->host_id }} === player.id;
+        
+        if (currentPlayers < maxPlayers) {
+            const hostBadge = isHost ? '<span class="badge bg-warning ms-2">房主</span>' : '';
+            const isCurrentUser = currentUserId === player.id;
+            const readyButton = isCurrentUser ? 
+                '<button class="btn btn-sm btn-outline-primary mt-1 toggle-ready-btn" data-room="{{ $room->id }}">取消準備</button>' : '';
+            
+            const playerHtml = `
+                <div class="col-md-6 mb-3" id="player-${player.id}">
+                    <div class="d-flex align-items-center p-3 border rounded">
+                        <div class="player-avatar me-3">
+                            ${player.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center">
+                                <span class="ready-indicator ready" id="ready-${player.id}"></span>
+                                <strong>${player.name}</strong>
+                                ${hostBadge}
+                            </div>
+                            <small class="text-muted" id="status-${player.id}">已準備</small>
+                            ${readyButton}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 移除等待玩家的佔位符
+            $('.row:has(.player-avatar) .col-md-6:has(.bg-light)').first().remove();
+            
+            // 添加新玩家
+            playerList.append(playerHtml);
+            
+            // 重新綁定準備按鈕事件
+            if (isCurrentUser) {
+                $('.toggle-ready-btn').off('click').on('click', function(e) {
+                    e.preventDefault();
+                    const roomId = $(this).data('room');
+                    
+                    $.ajax({
+                        url: `/game/toggle-ready/${roomId}`,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            // 狀態會通過 WebSocket 更新
+                        },
+                        error: function(xhr) {
+                            console.error('切換準備狀態失敗:', xhr.responseJSON);
+                        }
+                    });
+                });
+            }
+        }
+    }
+
+    function removePlayerFromList(playerId) {
+        $(`#player-${playerId}`).remove();
+        
+        // 如果玩家數量少於最大值，添加等待玩家的佔位符
+        const maxPlayers = {{ $room->max_players }};
+        const currentPlayers = $('.row:has(.player-avatar) .col-md-6').length;
+        
+        if (currentPlayers < maxPlayers) {
+            const placeholderHtml = `
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-center p-3 border rounded bg-light">
+                        <div class="player-avatar me-3 bg-secondary">
+                            <i class="bi bi-person-plus text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="text-muted">等待玩家加入...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('.row:has(.player-avatar)').first().append(placeholderHtml);
         }
     }
 
