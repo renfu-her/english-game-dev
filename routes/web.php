@@ -47,6 +47,15 @@ Route::get('/test-auth', function () {
     ]);
 });
 
+Route::get('/test-websocket', function () {
+    return view('test-websocket');
+});
+
+Route::post('/test-broadcast', function () {
+    broadcast(new \App\Events\TestEvent());
+    return response()->json(['success' => true]);
+});
+
 // 會員認證路由
 Route::prefix('member')->name('member.')->group(function () {
     Route::middleware('guest:member')->group(function () {

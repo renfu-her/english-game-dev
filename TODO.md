@@ -18,6 +18,27 @@
   - 頭像顯示和個人資料
   - 自動刷新功能（每60秒）
 
+### 2025-08-01 - WebSocket 連接問題修復
+- ✅ 發現並修復 WebSocket 連接問題
+  - **問題**: 系統使用 Laravel Reverb 但前端使用 Pusher.js
+  - **解決方案**: 將前端 JavaScript 從 Pusher.js 改為 Soketi.js (Laravel Reverb 的 JavaScript 客戶端)
+
+- ✅ 更新前端 JavaScript 庫
+  - 遊戲大廳 (`lobby.blade.php`): 從 Pusher.js 改為 Soketi.js
+  - 房間視圖 (`room.blade.php`): 從 Pusher.js 改為 Soketi.js
+  - 配置參數: 使用 `reverb` 配置而不是 `pusher` 配置
+
+- ✅ 建立 WebSocket 測試系統
+  - 建立 `test-websocket.blade.php` 測試頁面
+  - 建立 `TestEvent` 事件用於測試廣播
+  - 添加測試路由 `/test-websocket` 和 `/test-broadcast`
+  - 提供即時連接狀態監控和事件接收測試
+
+- ✅ 確保 Laravel Reverb 服務運行
+  - 啟動 Reverb 服務在 `localhost:8080`
+  - 驗證服務正在監聽端口 8080
+  - 清除配置快取確保最新設定生效
+
 ### 2025-08-01 - 完整 WebSocket 廣播系統建立
 - ✅ 建立完整的 WebSocket 廣播事件系統
   - `RoomCreated` - 房間建立事件，廣播到所有玩家
