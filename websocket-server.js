@@ -2,7 +2,29 @@ import { WebSocketServer } from 'ws';
 import http from 'http';
 
 // 創建 HTTP 服務器
-const server = http.createServer();
+const server = http.createServer((req, res) => {
+    // 處理廣播請求
+    if (req.method === 'POST' && req.url === '/broadcast') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                broadcastToChannel(data.channel, data.event, data.data);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, message: '廣播成功' }));
+            } catch (error) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: error.message }));
+            }
+        });
+    } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not Found');
+    }
+});
 
 // 創建 WebSocket 服務器
 const wss = new WebSocketServer({ server });
