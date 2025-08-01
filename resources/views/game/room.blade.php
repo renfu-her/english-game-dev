@@ -168,22 +168,22 @@
 @endsection
 
 @push('scripts')
-<script src="https://unpkg.com/@soketi/soketi-js@1.0.0/dist/soketi.js"></script>
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 $(document).ready(function() {
-    // 初始化 Laravel Reverb
-    const reverb = new window.Soketi({
-        key: '{{ config("broadcasting.connections.reverb.key") }}',
+    // 初始化 Laravel Reverb (使用 Pusher 協議)
+    const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
         wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
         wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
         wssPort: {{ config("broadcasting.connections.reverb.options.port") }},
         forceTLS: false,
         enabledTransports: ['ws', 'wss'],
         disableStats: true,
+        cluster: 'mt1', // 任意值，因為我們使用自定義主機
     });
 
     // 訂閱房間頻道
-    const channel = reverb.subscribe('room.{{ $room->id }}');
+    const channel = pusher.subscribe('room.{{ $room->id }}');
 
     // 監聽玩家加入事件
     channel.bind('player.joined', function(data) {

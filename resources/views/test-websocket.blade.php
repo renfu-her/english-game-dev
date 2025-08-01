@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket 測試</title>
-    <script src="https://unpkg.com/@soketi/soketi-js@1.0.0/dist/soketi.js"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
@@ -30,37 +30,37 @@
 
     <script>
         $(document).ready(function() {
-            // 初始化 Laravel Reverb
-            const reverb = new window.Soketi({
-                key: '{{ config("broadcasting.connections.reverb.key") }}',
+            // 初始化 Laravel Reverb (使用 Pusher 協議)
+            const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
                 wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
                 wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
                 wssPort: {{ config("broadcasting.connections.reverb.options.port") }},
                 forceTLS: false,
                 enabledTransports: ['ws', 'wss'],
                 disableStats: true,
+                cluster: 'mt1', // 任意值，因為我們使用自定義主機
             });
 
             // 連接狀態監聽
-            reverb.connection.bind('connected', function() {
+            pusher.connection.bind('connected', function() {
                 $('#status').removeClass('disconnected').addClass('connected').text('連接狀態: 已連接');
                 addMessage('✅ WebSocket 連接成功！');
             });
 
-            reverb.connection.bind('disconnected', function() {
+            pusher.connection.bind('disconnected', function() {
                 $('#status').removeClass('connected').addClass('disconnected').text('連接狀態: 已斷開');
                 addMessage('❌ WebSocket 連接斷開');
             });
 
             // 訂閱測試頻道
-            const testChannel = reverb.subscribe('test-channel');
+            const testChannel = pusher.subscribe('test-channel');
             
             testChannel.bind('test-event', function(data) {
                 addMessage('📨 收到測試事件: ' + JSON.stringify(data));
             });
 
             // 訂閱遊戲大廳頻道
-            const lobbyChannel = reverb.subscribe('game.lobby');
+            const lobbyChannel = pusher.subscribe('game.lobby');
             
             lobbyChannel.bind('room.created', function(data) {
                 addMessage('🏠 房間建立: ' + data.message);
