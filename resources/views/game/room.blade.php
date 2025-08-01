@@ -177,9 +177,10 @@ $(document).ready(function() {
         wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
         wssPort: {{ config("broadcasting.connections.reverb.options.port") }},
         forceTLS: false,
-        enabledTransports: ['ws', 'wss'],
+        enabledTransports: ['ws'], // 只使用 WS，不使用 WSS
         disableStats: true,
         cluster: 'mt1', // 任意值，因為我們使用自定義主機
+        encrypted: false, // 禁用加密
     });
 
     // 訂閱房間頻道
