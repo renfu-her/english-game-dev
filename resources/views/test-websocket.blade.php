@@ -37,6 +37,7 @@
             
             function connectWebSocket() {
                 try {
+                    console.log('嘗試連接到 WebSocket 服務器: ws://localhost:8888');
                     ws = new WebSocket('ws://localhost:8888');
                     
                     ws.onopen = function() {
