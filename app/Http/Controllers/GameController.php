@@ -67,6 +67,15 @@ class GameController extends Controller
             'allow_skip' => $request->boolean('allow_skip'),
             'show_explanation' => $request->boolean('show_explanation'),
             'status' => 'waiting',
+            'settings' => [
+                'categories' => [$request->category_id],
+                'question_count' => $request->question_count,
+                'difficulty' => $request->difficulty,
+                'time_limit' => $request->time_limit,
+                'allow_skip' => $request->boolean('allow_skip'),
+                'show_explanation' => $request->boolean('show_explanation'),
+                'auto_start' => false,
+            ],
         ]);
 
         // 房主自動加入房間
