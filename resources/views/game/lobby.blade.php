@@ -30,6 +30,10 @@
                                             <small class="text-muted">
                                                 <i class="bi bi-person"></i> 房主: {{ $room->host->name ?? '未知' }}
                                             </small>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="bi bi-hash"></i> 房間代碼: <code>{{ $room->code }}</code>
+                                            </small>
                                         </div>
                                         
                                         <div class="mb-2">

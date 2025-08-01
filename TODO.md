@@ -18,6 +18,13 @@
   - 頭像顯示和個人資料
   - 自動刷新功能（每60秒）
 
+### 2025-08-01 - 房間代碼生成功能修正
+- ✅ 修正 `createRoom()` 方法中的房間代碼生成問題
+  - 加入自動生成唯一房間代碼功能
+  - 使用 `strtoupper(substr(md5(uniqid()), 0, 6))` 生成6位大寫字母數字組合
+  - 確保房間代碼唯一性（檢查資料庫中是否已存在）
+  - 解決 `SQLSTATE[HY000]: General error: 1364 Field 'code' doesn't have a default value` 錯誤
+
 ### 2025-07-31 - 玩家準備狀態 WebSocket 系統建立
 - ✅ 建立 `PlayerReadyStatusChanged` 事件
   - 處理玩家準備狀態變更的即時廣播

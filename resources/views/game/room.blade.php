@@ -153,10 +153,14 @@
                     <strong>建立時間:</strong><br>
                     {{ $room->created_at->format('Y-m-d H:i:s') }}
                 </p>
-                <p class="mb-0">
-                    <strong>房間代碼:</strong><br>
-                    <code>{{ $room->id }}</code>
-                </p>
+                                 <p class="mb-2">
+                     <strong>房間代碼:</strong><br>
+                     <code>{{ $room->code }}</code>
+                 </p>
+                 <p class="mb-0">
+                     <strong>房間ID:</strong><br>
+                     <code>{{ $room->id }}</code>
+                 </p>
             </div>
         </div>
     </div>

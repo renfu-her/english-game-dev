@@ -50,8 +50,14 @@ class GameController extends Controller
             'show_explanation' => 'boolean',
         ]);
 
+        // 生成唯一的房間代碼
+        do {
+            $code = strtoupper(substr(md5(uniqid()), 0, 6));
+        } while (Room::where('code', $code)->exists());
+
         $room = Room::create([
             'name' => $request->name,
+            'code' => $code,
             'host_id' => Auth::guard('member')->id(),
             'max_players' => $request->max_players,
             'category_id' => $request->category_id,
