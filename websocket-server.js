@@ -1,11 +1,11 @@
-const WebSocket = require('ws');
-const http = require('http');
+import { WebSocketServer } from 'ws';
+import http from 'http';
 
 // 創建 HTTP 服務器
 const server = http.createServer();
 
 // 創建 WebSocket 服務器
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 // 存儲連接的客戶端
 const clients = new Map();
@@ -95,7 +95,7 @@ function broadcastToChannel(channel, event, data) {
         
         channels.get(channel).forEach(clientId => {
             const client = clients.get(clientId);
-            if (client && client.readyState === WebSocket.OPEN) {
+            if (client && client.readyState === 1) { // WebSocket.OPEN
                 client.send(message);
             }
         });
@@ -111,6 +111,4 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 // 導出廣播函數供其他模組使用
-module.exports = {
-    broadcastToChannel
-}; 
+export { broadcastToChannel }; 
