@@ -132,7 +132,7 @@ const HOST = '0.0.0.0'; // 監聽所有網路介面
 server.listen(PORT, HOST, () => {
     console.log(`WebSocket 服務器運行在 ws://0.0.0.0:${PORT}`);
     console.log(`本地連接: ws://localhost:${PORT}`);
-    console.log(`外部連接: ws://[您的IP]:${PORT}`);
+    console.log(`外部連接: ws://172.236.150.230:${PORT}`);
 });
 
 // 導出廣播函數供其他模組使用

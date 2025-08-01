@@ -37,11 +37,8 @@
             
             function connectWebSocket() {
                 try {
-                    // 動態獲取當前主機的 IP 地址
-                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const host = window.location.hostname;
-                    const port = '8888';
-                    const wsUrl = `${protocol}//${host}:${port}`;
+                    // 使用固定的服務器 IP 地址
+                    const wsUrl = 'ws://172.236.150.230:8888';
                     
                     console.log('嘗試連接到 WebSocket 服務器:', wsUrl);
                     ws = new WebSocket(wsUrl);
