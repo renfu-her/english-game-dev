@@ -37,6 +37,8 @@
 
 - ✅ 安裝 Node.js 依賴
   - 安裝 `ws` 套件: `npm install ws`
+  - 修復 ES6 模組語法問題（package.json "type": "module"）
+  - 將 `require()` 改為 `import` 語法
   - 啟動 WebSocket 服務器: `node websocket-server.js`
 
 - ✅ 功能特性
