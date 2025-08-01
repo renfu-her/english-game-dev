@@ -241,6 +241,7 @@ $(document).ready(function() {
         disableStats: true,
         cluster: 'mt1', // 任意值，因為我們使用自定義主機
         encrypted: false, // 禁用加密
+        useTLS: false, // 強制不使用 TLS
     });
 
     // 訂閱遊戲大廳頻道

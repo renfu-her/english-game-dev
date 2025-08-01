@@ -173,14 +173,15 @@
 $(document).ready(function() {
     // 初始化 Laravel Reverb (使用 Pusher 協議)
     const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
-        wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
-        wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
-        wssPort: {{ config("broadcasting.connections.reverb.options.port") }},
+        wsHost: 'localhost',
+        wsPort: 8080,
+        wssPort: 8080,
         forceTLS: false,
         enabledTransports: ['ws'], // 只使用 WS，不使用 WSS
         disableStats: true,
         cluster: 'mt1', // 任意值，因為我們使用自定義主機
         encrypted: false, // 禁用加密
+        useTLS: false, // 強制不使用 TLS
     });
 
     // 訂閱房間頻道
