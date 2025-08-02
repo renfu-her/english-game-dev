@@ -163,12 +163,12 @@ function broadcastToChannel(channel, event, data) {
 }
 
 // 啟動服務器
-const PORT = process.env.PORT || 80; // 使用環境變數或默認 80 端口
+const PORT = process.env.PORT || 3000; // 使用環境變數或默認 3000 端口
 const HOST = '0.0.0.0'; // 監聽所有網路介面
 server.listen(PORT, HOST, () => {
     console.log(`WebSocket 服務器運行在端口 ${PORT}`);
     console.log(`本地連接: ws://localhost:${PORT}`);
-    console.log(`Cloudflare 代理: 自動處理 WebSocket 流量`);
+    console.log(`Nginx 代理: wss://english-game.ai-tracks.com/ws`);
 });
 
 // 導出廣播函數供其他模組使用
