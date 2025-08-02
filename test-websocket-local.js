@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 
 console.log('🔌 測試本地 WebSocket 連接...');
 
-const ws = new WebSocket('ws://localhost:3000/ws');
+const ws = new WebSocket('ws://localhost:3000');
 
 ws.on('open', function open() {
     console.log('✅ WebSocket 連接成功！');
