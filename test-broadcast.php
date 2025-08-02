@@ -19,7 +19,7 @@ $context = stream_context_create([
     ]
 ]);
 
-$result = file_get_contents('http://localhost:8888/broadcast', false, $context);
+$result = file_get_contents('http://localhost:3000', false, $context);
 
 echo "廣播測試結果: " . $result;
 ?> 
