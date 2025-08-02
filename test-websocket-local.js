@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import { WebSocketServer } from 'ws';
 
 console.log('🔌 測試本地 WebSocket 連接...');
 
