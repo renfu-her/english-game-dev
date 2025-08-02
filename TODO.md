@@ -66,6 +66,8 @@
   - 更新域名為 english-game.ai-tracks.com
   - 參考 Cloudflare Workers WebSocket 文檔優化實現
   - 修正 WebSocket 服務器端口為 3000，配合 Nginx 代理設定
+  - 參考 Cloudflare Workers WebSocket 文檔重新實現 WebSocket 服務器
+  - 優化 WebSocket 升級處理，符合 Cloudflare Workers 標準
 
 ### 2025-08-01 - WebSocket 連接問題修復
 - ✅ 發現並修復 WebSocket 連接問題

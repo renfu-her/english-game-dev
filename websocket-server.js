@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws';
 import http from 'http';
+import crypto from 'crypto';
 
 // 創建 HTTP 服務器
 const server = http.createServer((req, res) => {
@@ -21,43 +22,33 @@ const server = http.createServer((req, res) => {
             }
         });
     } else if (req.url === '/ws' || req.url === '/') {
-        // 參考 Cloudflare Workers 文檔的 WebSocket 處理方式
-        const upgradeHeader = req.headers.upgrade;
+        // 檢查是否為 WebSocket 升級請求
+        const upgrade = req.headers.upgrade;
+        const connection = req.headers.connection;
         
-        if (!upgradeHeader || upgradeHeader !== 'websocket') {
-            // 普通 HTTP 請求
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end('WebSocket endpoint - 請使用 WebSocket 協議連接');
-            return;
+        if (upgrade && upgrade.toLowerCase() === 'websocket' && 
+            connection && connection.toLowerCase().includes('upgrade')) {
+            
+            console.log('收到 WebSocket 升級請求');
+            
+            // 使用 WebSocketServer 處理升級
+            const wss = new WebSocketServer({ noServer: true });
+            
+            wss.on('connection', function connection(ws) {
+                handleWebSocketConnection(ws);
+            });
+            
+            wss.handleUpgrade(req, req.socket, Buffer.alloc(0), function done(ws) {
+                wss.emit('connection', ws, req);
+            });
+        } else {
+            // 普通 HTTP 請求 - 返回 426 狀態碼（需要升級）
+            res.writeHead(426, { 
+                'Content-Type': 'text/plain',
+                'Upgrade': 'websocket'
+            });
+            res.end('Expected Upgrade: websocket');
         }
-        
-        console.log('收到 WebSocket 升級請求');
-        
-        // 生成 WebSocket 密鑰響應
-        const key = req.headers['sec-websocket-key'];
-        const accept = require('crypto')
-            .createHash('sha1')
-            .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')
-            .digest('base64');
-        
-        res.writeHead(101, {
-            'Upgrade': 'websocket',
-            'Connection': 'Upgrade',
-            'Sec-WebSocket-Accept': accept,
-            'Sec-WebSocket-Protocol': req.headers['sec-websocket-protocol'] || ''
-        });
-        res.end();
-        
-        // 使用 WebSocketServer 處理升級
-        const wss = new WebSocketServer({ noServer: true });
-        
-        wss.on('connection', function connection(ws) {
-            handleWebSocketConnection(ws);
-        });
-        
-        wss.handleUpgrade(req, req.socket, Buffer.alloc(0), function done(ws) {
-            wss.emit('connection', ws, req);
-        });
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
@@ -70,7 +61,7 @@ const channels = new Map();
 
 console.log('WebSocket 服務器啟動中...');
 
-// 處理 WebSocket 連接的函數
+// 處理 WebSocket 連接的函數（參考 Cloudflare Workers 事件處理）
 function handleWebSocketConnection(ws) {
     console.log('新的 WebSocket 連接建立');
     
@@ -81,6 +72,16 @@ function handleWebSocketConnection(ws) {
     // 存儲客戶端訂閱的頻道
     const clientChannels = new Set();
     
+    // 發送連接成功訊息（參考 Cloudflare Workers 標準）
+    ws.send(JSON.stringify({
+        event: 'pusher:connection_established',
+        data: {
+            socket_id: clientId.toString(),
+            activity_timeout: 120
+        }
+    }));
+    
+    // 處理訊息事件（參考 Cloudflare Workers addEventListener 模式）
     ws.on('message', function incoming(message) {
         try {
             const data = JSON.parse(message);
@@ -111,6 +112,7 @@ function handleWebSocketConnection(ws) {
         }
     });
     
+    // 處理關閉事件
     ws.on('close', function() {
         console.log('客戶端斷開連接:', clientId);
         
@@ -128,21 +130,13 @@ function handleWebSocketConnection(ws) {
         clients.delete(clientId);
     });
     
+    // 處理錯誤事件
     ws.on('error', function(error) {
         console.error('WebSocket 錯誤:', error);
     });
-    
-    // 發送連接成功訊息
-    ws.send(JSON.stringify({
-        event: 'pusher:connection_established',
-        data: {
-            socket_id: clientId.toString(),
-            activity_timeout: 120
-        }
-    }));
 }
 
-// 廣播訊息到特定頻道
+// 廣播訊息到特定頻道（參考 Cloudflare Workers 訊息發送模式）
 function broadcastToChannel(channel, event, data) {
     if (channels.has(channel)) {
         const message = JSON.stringify({
@@ -163,12 +157,13 @@ function broadcastToChannel(channel, event, data) {
 }
 
 // 啟動服務器
-const PORT = process.env.PORT || 3000; // 使用環境變數或默認 3000 端口
-const HOST = '0.0.0.0'; // 監聽所有網路介面
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
 server.listen(PORT, HOST, () => {
     console.log(`WebSocket 服務器運行在端口 ${PORT}`);
     console.log(`本地連接: ws://localhost:${PORT}`);
     console.log(`Nginx 代理: wss://english-game.ai-tracks.com/ws`);
+    console.log(`參考 Cloudflare Workers WebSocket 標準實現`);
 });
 
 // 導出廣播函數供其他模組使用
