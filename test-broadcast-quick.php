@@ -21,7 +21,7 @@ try {
     echo "   事件創建成功\n";
     
     echo "3. 廣播事件...\n";
-    Broadcast::dispatch($event);
+    event($event);
     echo "   ✅ 廣播成功！\n";
     
     echo "\n🎉 廣播測試完成！\n";
