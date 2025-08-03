@@ -245,6 +245,12 @@ $(document).ready(function() {
                 forceTLS: false,
                 enabledTransports: ['ws', 'wss'],
                 disableStats: true,
+                // 添加認證配置
+                auth: {
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                }
             });
             
             console.log('Laravel Reverb 連接成功');
@@ -297,8 +303,8 @@ $(document).ready(function() {
     
     // 頁面卸載時關閉連接
     $(window).on('beforeunload', function() {
-        if (ws) {
-            ws.close();
+        if (echo) {
+            echo.disconnect();
         }
     });
 

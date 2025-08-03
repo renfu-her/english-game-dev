@@ -158,6 +158,13 @@
         - 配置 Reverb apps 端點的代理規則
         - 添加 WebSocket 支持和跨域處理
         - 創建 `test-nginx-reverb.php` 測試腳本
+      - **遊戲 Blade 文件 Reverb 整合**：
+        - 更新 `resources/views/game/lobby.blade.php` WebSocket 配置
+        - 更新 `resources/views/game/play.blade.php` WebSocket 配置
+        - 更新 `resources/views/game/room.blade.php` WebSocket 配置
+        - 添加認證配置和正確的連接關閉方法
+        - 創建 `test-game-reverb.php` 測試腳本
+        - 確認遊戲相關事件廣播功能正常
 
 - ✅ 路由配置
   - `/test-reverb` - 測試頁面
