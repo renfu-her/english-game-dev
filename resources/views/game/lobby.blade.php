@@ -230,58 +230,48 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // 純 JavaScript WebSocket 實現
-    let ws = null;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
+    // Laravel Reverb WebSocket 實現
+    let echo = null;
     
     function connectWebSocket() {
         try {
-            // 使用 Cloudflare 域名和 /ws 路徑
-            const wsUrl = 'wss://english-game.ai-tracks.com/ws';
+            // 使用 Laravel Reverb
+            echo = new Echo({
+                broadcaster: 'reverb',
+                key: '{{ config("broadcasting.connections.reverb.key") }}',
+                wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
+                wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
+                wssPort: {{ config("broadcasting.connections.reverb.options.port") }},
+                forceTLS: false,
+                enabledTransports: ['ws', 'wss'],
+                disableStats: true,
+            });
             
-            console.log('嘗試連接到 WebSocket 服務器:', wsUrl);
-            ws = new WebSocket(wsUrl);
+            console.log('Laravel Reverb 連接成功');
             
-            ws.onopen = function() {
-                console.log('WebSocket 連接成功');
-                reconnectAttempts = 0;
-                
-                // 訂閱遊戲大廳頻道
-                subscribeToChannel('game.lobby');
-            };
-            
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                handleWebSocketMessage(data);
-            };
-            
-            ws.onclose = function() {
-                console.log('WebSocket 連接關閉');
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    reconnectAttempts++;
-                    setTimeout(connectWebSocket, 2000);
-                }
-            };
-            
-            ws.onerror = function(error) {
-                console.error('WebSocket 錯誤:', error);
-            };
+            // 訂閱遊戲大廳頻道
+            subscribeToChannel('game.lobby');
             
         } catch (error) {
-            console.error('WebSocket 連接失敗:', error);
+            console.error('Laravel Reverb 連接失敗:', error);
         }
     }
     
     function subscribeToChannel(channel) {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            const message = {
-                event: 'pusher:subscribe',
-                data: {
-                    channel: channel
-                }
-            };
-            ws.send(JSON.stringify(message));
+        if (echo) {
+            echo.channel(channel)
+                .listen('.room.created', (e) => {
+                    handleWebSocketMessage({ event: 'room.created', data: e });
+                })
+                .listen('.room.deleted', (e) => {
+                    handleWebSocketMessage({ event: 'room.deleted', data: e });
+                })
+                .listen('.room.status_changed', (e) => {
+                    handleWebSocketMessage({ event: 'room.status_changed', data: e });
+                })
+                .listen('.member.status_changed', (e) => {
+                    handleWebSocketMessage({ event: 'member.status_changed', data: e });
+                });
         }
     }
     

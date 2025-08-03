@@ -40,3 +40,19 @@ Broadcast::channel('game.{roomId}', function ($member, $roomId) {
     // 檢查用戶是否在遊戲房間中
     return $room->players()->where('member_id', $member->id)->exists();
 });
+
+// 聊天頻道 - 房間內的聊天
+Broadcast::channel('chat.{roomId}', function ($member, $roomId) {
+    $room = Room::find($roomId);
+    if (!$room) {
+        return false;
+    }
+    
+    // 檢查用戶是否在房間中
+    return $room->players()->where('member_id', $member->id)->exists();
+});
+
+// 系統通知頻道 - 所有已登入的會員都可以訂閱
+Broadcast::channel('notifications', function ($member) {
+    return $member instanceof Member;
+});
