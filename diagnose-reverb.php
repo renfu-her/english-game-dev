@@ -7,6 +7,7 @@ echo "==========================\n\n";
 
 // 1. 檢查 Laravel 環境
 echo "📋 檢查 Laravel 環境...\n";
+echo "Laravel 版本: " . app()->version() . "\n";
 echo "PHP 版本: " . PHP_VERSION . "\n";
 echo "環境: " . app()->environment() . "\n";
 echo "APP_KEY: " . (config('app.key') ? '已設置' : '未設置') . "\n";
