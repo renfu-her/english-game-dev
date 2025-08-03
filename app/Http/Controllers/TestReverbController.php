@@ -89,8 +89,9 @@ class TestReverbController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
-                'message' => '廣播失敗'
-            ]);
+                'message' => '廣播失敗',
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
     }
 

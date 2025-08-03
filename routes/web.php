@@ -60,14 +60,14 @@ Route::post('/test-broadcast', function () {
     return response()->json(['success' => true]);
 });
 
-// Reverb 測試路由
+// Reverb 測試路由 - 排除 CSRF 保護
 Route::prefix('test-reverb')->name('test-reverb.')->group(function () {
     Route::get('/', [App\Http\Controllers\TestReverbController::class, 'index'])->name('index');
     Route::get('/configuration', [App\Http\Controllers\TestReverbController::class, 'testConfiguration'])->name('configuration');
     Route::get('/server-connection', [App\Http\Controllers\TestReverbController::class, 'testServerConnection'])->name('server-connection');
-    Route::post('/broadcasting', [App\Http\Controllers\TestReverbController::class, 'testBroadcasting'])->name('broadcasting');
+    Route::post('/broadcasting', [App\Http\Controllers\TestReverbController::class, 'testBroadcasting'])->name('broadcasting')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::get('/websocket-endpoints', [App\Http\Controllers\TestReverbController::class, 'testWebSocketEndpoints'])->name('websocket-endpoints');
-    Route::post('/channel-broadcast', [App\Http\Controllers\TestReverbController::class, 'testChannelBroadcast'])->name('channel-broadcast');
+    Route::post('/channel-broadcast', [App\Http\Controllers\TestReverbController::class, 'testChannelBroadcast'])->name('channel-broadcast')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::get('/environment-status', [App\Http\Controllers\TestReverbController::class, 'getEnvironmentStatus'])->name('environment-status');
     Route::get('/full-test', [App\Http\Controllers\TestReverbController::class, 'runFullTest'])->name('full-test');
 });

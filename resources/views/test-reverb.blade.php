@@ -274,15 +274,22 @@
                 const response = await fetch('/test-reverb/broadcasting', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ message })
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 showResult('broadcast-result', data, data.success);
             } catch (error) {
-                showResult('broadcast-result', { error: error.message }, false);
+                showResult('broadcast-result', { 
+                    error: error.message,
+                    message: '請檢查瀏覽器開發者工具查看詳細錯誤信息'
+                }, false);
             } finally {
                 hideLoading(button);
             }
@@ -312,18 +319,25 @@
                 const response = await fetch('/test-reverb/channel-broadcast', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ 
                         channel,
                         data: { message: '測試訊息', timestamp: new Date().toISOString() }
                     })
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 showResult('channel-result', data, data.success);
             } catch (error) {
-                showResult('channel-result', { error: error.message }, false);
+                showResult('channel-result', { 
+                    error: error.message,
+                    message: '請檢查瀏覽器開發者工具查看詳細錯誤信息'
+                }, false);
             } finally {
                 hideLoading(button);
             }

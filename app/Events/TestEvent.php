@@ -14,12 +14,14 @@ class TestEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $message;
+
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct(string $message = '這是一個測試事件')
     {
-        //
+        $this->message = $message;
     }
 
     /**
@@ -40,7 +42,7 @@ class TestEvent implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'message' => '這是一個測試事件',
+            'message' => $this->message,
             'timestamp' => now()->toISOString(),
             'data' => [
                 'test' => true,
