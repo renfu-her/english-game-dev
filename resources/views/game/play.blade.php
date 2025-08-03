@@ -177,13 +177,14 @@ $(document).ready(function() {
     function subscribeToChannel(channel) {
         console.log('嘗試訂閱頻道:', channel);
         
-        if (!echo) {
+        // 直接使用 window.Echo 而不是局部變數 echo
+        if (!window.Echo) {
             console.error('Echo 實例不存在，無法訂閱頻道');
             return;
         }
         
         try {
-            echo.channel(channel)
+            window.Echo.channel(channel)
                 .listen('.question.displayed', (e) => {
                     console.log('收到題目顯示事件:', e);
                     handleWebSocketMessage({ event: 'question.displayed', data: e });
@@ -219,8 +220,8 @@ $(document).ready(function() {
     
     // 頁面卸載時關閉連接
     $(window).on('beforeunload', function() {
-        if (echo) {
-            echo.disconnect();
+        if (window.Echo) {
+            window.Echo.disconnect();
         }
     });
 

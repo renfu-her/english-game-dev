@@ -184,6 +184,11 @@
         - 更新 `resources/views/game/room.blade.php` WebSocket 配置和錯誤處理
         - 添加詳細的調試日誌和錯誤處理機制
         - 確保所有遊戲頁面的 WebSocket 連接穩定可靠
+      - **WebSocket 作用域問題修復**：
+        - 修復 `echo` 變數作用域問題，直接使用 `window.Echo`
+        - 更新所有遊戲頁面的 `subscribeToChannel` 函數
+        - 更新頁面卸載時的連接關閉邏輯
+        - 確保 WebSocket 連接在所有頁面都能正常工作
 
 - ✅ 路由配置
   - `/test-reverb` - 測試頁面
