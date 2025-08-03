@@ -148,6 +148,16 @@
       - 將 Reverb 配置改為使用 `pusher` 驅動（Laravel 12 中 Reverb 使用 Pusher 協議）
       - 設置正確的主機、端口和協議配置
       - 啟動 Reverb 服務器：`php artisan reverb:start --host=127.0.0.1 --port=8080`
+      - **修復廣播調用方法**：
+        - 將所有 `Broadcast::dispatch($event)` 改為 `event($event)`
+        - 修復測試控制器、Artisan 命令、測試類別中的廣播調用
+        - 確認廣播功能正常工作
+      - **Nginx 配置修復**：
+        - 創建 `nginx-english-game-local.conf` 用於本地開發環境
+        - 創建 `nginx-english-game-complete.conf` 用於生產環境
+        - 配置 Reverb apps 端點的代理規則
+        - 添加 WebSocket 支持和跨域處理
+        - 創建 `test-nginx-reverb.php` 測試腳本
 
 - ✅ 路由配置
   - `/test-reverb` - 測試頁面
