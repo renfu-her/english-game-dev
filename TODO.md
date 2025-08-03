@@ -135,12 +135,19 @@
     - TestEvent 建構函數不接受參數但測試中傳遞了參數
     - CSRF 保護導致返回 HTML 錯誤頁面而非 JSON
     - 錯誤處理不夠詳細
+    - Laravel 12 中 Reverb 配置問題：系統使用 PusherBroadcaster 而非 ReverbBroadcaster
+    - 缺少必要的服務提供者註冊
   - **解決方案**:
     - 修正 TestEvent 建構函數接受訊息參數
     - 在測試路由中排除 CSRF 中間件
     - 改進錯誤處理和日誌記錄
     - 更新前端 JavaScript 移除 CSRF token 處理
     - 添加更詳細的錯誤信息
+    - **Laravel 12 Reverb 配置修復**:
+      - 註冊 `Laravel\Reverb\ReverbServiceProvider` 到 `bootstrap/providers.php`
+      - 將 Reverb 配置改為使用 `pusher` 驅動（Laravel 12 中 Reverb 使用 Pusher 協議）
+      - 設置正確的主機、端口和協議配置
+      - 啟動 Reverb 服務器：`php artisan reverb:start --host=127.0.0.1 --port=8080`
 
 - ✅ 路由配置
   - `/test-reverb` - 測試頁面
