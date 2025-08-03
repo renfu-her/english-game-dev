@@ -93,7 +93,7 @@
   - 驗證服務正在監聽端口 8080
   - 清除配置快取確保最新設定生效
 
-### 2025-08-01 - Laravel Reverb 測試系統建立
+### 2025-08-01 - Laravel Reverb 測試系統建立與修復
 - ✅ 建立完整的 Laravel Reverb 測試系統
   - **測試類別**:
     - `ReverbConnectionTest` - 測試 Reverb 連接狀態
@@ -124,16 +124,31 @@
 
 - ✅ 建立命令行測試腳本
   - `test-reverb-status.php` - 簡單的 PHP 腳本
+  - `test-broadcast-simple.php` - 廣播功能測試腳本
+  - `diagnose-reverb.php` - 完整診斷工具
   - 檢查配置、連接、環境變數
   - 提供詳細的診斷信息
+
+- ✅ 修復廣播測試問題
+  - **問題**: 測試廣播時出現 "Unexpected token '<'" JSON 解析錯誤
+  - **原因**: 
+    - TestEvent 建構函數不接受參數但測試中傳遞了參數
+    - CSRF 保護導致返回 HTML 錯誤頁面而非 JSON
+    - 錯誤處理不夠詳細
+  - **解決方案**:
+    - 修正 TestEvent 建構函數接受訊息參數
+    - 在測試路由中排除 CSRF 中間件
+    - 改進錯誤處理和日誌記錄
+    - 更新前端 JavaScript 移除 CSRF token 處理
+    - 添加更詳細的錯誤信息
 
 - ✅ 路由配置
   - `/test-reverb` - 測試頁面
   - `/test-reverb/configuration` - 配置測試
   - `/test-reverb/server-connection` - 連接測試
-  - `/test-reverb/broadcasting` - 廣播測試
+  - `/test-reverb/broadcasting` - 廣播測試 (排除 CSRF)
   - `/test-reverb/websocket-endpoints` - 端點測試
-  - `/test-reverb/channel-broadcast` - 頻道測試
+  - `/test-reverb/channel-broadcast` - 頻道測試 (排除 CSRF)
   - `/test-reverb/environment-status` - 環境檢查
   - `/test-reverb/full-test` - 完整測試
 
