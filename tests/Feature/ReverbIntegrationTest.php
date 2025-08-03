@@ -77,7 +77,7 @@ class ReverbIntegrationTest extends TestCase
     {
         try {
             $event = new TestEvent('整合測試訊息');
-            Broadcast::dispatch($event);
+            event($event);
             $this->assertTrue(true);
         } catch (\Exception $e) {
             $this->markTestSkipped("廣播失敗: " . $e->getMessage());
@@ -96,7 +96,7 @@ class ReverbIntegrationTest extends TestCase
         // 測試聊天訊息事件
         try {
             $chatEvent = new ChatMessage($room, $member, '測試聊天訊息');
-            Broadcast::dispatch($chatEvent);
+            event($chatEvent);
             $this->assertTrue(true);
         } catch (\Exception $e) {
             $this->markTestSkipped("聊天事件廣播失敗: " . $e->getMessage());
@@ -105,7 +105,7 @@ class ReverbIntegrationTest extends TestCase
         // 測試房間創建事件
         try {
             $roomEvent = new RoomCreated($room);
-            Broadcast::dispatch($roomEvent);
+            event($roomEvent);
             $this->assertTrue(true);
         } catch (\Exception $e) {
             $this->markTestSkipped("房間事件廣播失敗: " . $e->getMessage());

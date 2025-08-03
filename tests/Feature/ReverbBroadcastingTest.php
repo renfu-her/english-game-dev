@@ -29,7 +29,7 @@ class ReverbBroadcastingTest extends TestCase
         $event = new TestEvent('測試訊息');
         
         try {
-            Broadcast::dispatch($event);
+            event($event);
             $this->assertTrue(true); // 如果沒有拋出異常，表示廣播成功
         } catch (\Exception $e) {
             $this->markTestSkipped("廣播失敗: " . $e->getMessage());

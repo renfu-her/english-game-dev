@@ -123,7 +123,7 @@ class TestReverbConnection extends Command
         
         try {
             $event = new TestEvent('命令行測試訊息');
-            Broadcast::dispatch($event);
+            event($event);
             
             if ($verbose) {
                 $this->line('事件已成功廣播');

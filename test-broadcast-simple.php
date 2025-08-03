@@ -36,7 +36,7 @@ try {
     $event = new TestEvent('命令行測試訊息');
     echo "✅ 事件創建成功\n";
     
-    Broadcast::dispatch($event);
+    event($event);
     echo "✅ 事件廣播成功\n";
     
     echo "廣播數據:\n";

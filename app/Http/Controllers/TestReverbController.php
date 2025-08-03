@@ -75,7 +75,7 @@ class TestReverbController extends Controller
         
         try {
             $event = new TestEvent($message);
-            Broadcast::dispatch($event);
+            event($event);
             
             return response()->json([
                 'success' => true,
@@ -231,7 +231,7 @@ class TestReverbController extends Controller
         // 3. 廣播測試
         try {
             $event = new TestEvent('完整測試訊息');
-            Broadcast::dispatch($event);
+            event($event);
             $results['broadcasting'] = [
                 'success' => true,
                 'message' => '廣播功能正常'
