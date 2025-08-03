@@ -175,6 +175,16 @@ $(document).ready(function() {
     
     function connectWebSocket() {
         try {
+            console.log('開始初始化 Echo...');
+            
+            // 檢查 Echo 是否可用
+            if (typeof Echo === 'undefined') {
+                console.error('Echo 未定義！請檢查 Laravel Echo 是否正確載入');
+                return;
+            }
+            
+            console.log('Echo 可用，開始配置...');
+            
             // 使用 Laravel Reverb
             window.Echo = new Echo({
                 broadcaster: 'reverb',
@@ -194,11 +204,16 @@ $(document).ready(function() {
             });
             
             echo = window.Echo;
+            console.log('Echo 配置完成');
             
-            console.log('Laravel Reverb 連接成功');
-            
-            // 訂閱房間頻道
-            subscribeToChannel('room.{{ $room->id }}');
+            if (window.Echo) {
+                console.log('Echo 實例創建成功');
+                
+                // 訂閱房間頻道
+                subscribeToChannel('room.{{ $room->id }}');
+            } else {
+                console.error('Echo 實例創建失敗');
+            }
             
         } catch (error) {
             console.error('Laravel Reverb 連接失敗:', error);
@@ -206,26 +221,43 @@ $(document).ready(function() {
     }
     
     function subscribeToChannel(channel) {
-        if (echo) {
+        console.log('嘗試訂閱頻道:', channel);
+        
+        if (!echo) {
+            console.error('Echo 實例不存在，無法訂閱頻道');
+            return;
+        }
+        
+        try {
             echo.channel(channel)
                 .listen('.player.joined', (e) => {
+                    console.log('收到玩家加入事件:', e);
                     handleWebSocketMessage({ event: 'player.joined', data: e });
                 })
                 .listen('.player.left', (e) => {
+                    console.log('收到玩家離開事件:', e);
                     handleWebSocketMessage({ event: 'player.left', data: e });
                 })
                 .listen('.game.started', (e) => {
+                    console.log('收到遊戲開始事件:', e);
                     handleWebSocketMessage({ event: 'game.started', data: e });
                 })
                 .listen('.chat.message', (e) => {
+                    console.log('收到聊天訊息事件:', e);
                     handleWebSocketMessage({ event: 'chat.message', data: e });
                 })
                 .listen('.player.ready_status_changed', (e) => {
+                    console.log('收到玩家準備狀態變更事件:', e);
                     handleWebSocketMessage({ event: 'player.ready_status_changed', data: e });
                 })
                 .listen('.member.status_changed', (e) => {
+                    console.log('收到會員狀態變更事件:', e);
                     handleWebSocketMessage({ event: 'member.status_changed', data: e });
                 });
+            
+            console.log('頻道訂閱成功:', channel);
+        } catch (error) {
+            console.error('頻道訂閱失敗:', channel, error);
         }
     }
     

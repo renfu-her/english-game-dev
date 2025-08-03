@@ -129,6 +129,16 @@ $(document).ready(function() {
     
     function connectWebSocket() {
         try {
+            console.log('開始初始化 Echo...');
+            
+            // 檢查 Echo 是否可用
+            if (typeof Echo === 'undefined') {
+                console.error('Echo 未定義！請檢查 Laravel Echo 是否正確載入');
+                return;
+            }
+            
+            console.log('Echo 可用，開始配置...');
+            
             // 使用 Laravel Reverb
             window.Echo = new Echo({
                 broadcaster: 'reverb',
@@ -148,10 +158,16 @@ $(document).ready(function() {
             });
             
             echo = window.Echo;
-            console.log('Laravel Reverb 連接成功');
+            console.log('Echo 配置完成');
             
-            // 訂閱遊戲頻道
-            subscribeToChannel('game.{{ $room->id }}');
+            if (window.Echo) {
+                console.log('Echo 實例創建成功');
+                
+                // 訂閱遊戲頻道
+                subscribeToChannel('game.{{ $room->id }}');
+            } else {
+                console.error('Echo 實例創建失敗');
+            }
             
         } catch (error) {
             console.error('Laravel Reverb 連接失敗:', error);
@@ -159,17 +175,31 @@ $(document).ready(function() {
     }
     
     function subscribeToChannel(channel) {
-        if (echo) {
+        console.log('嘗試訂閱頻道:', channel);
+        
+        if (!echo) {
+            console.error('Echo 實例不存在，無法訂閱頻道');
+            return;
+        }
+        
+        try {
             echo.channel(channel)
                 .listen('.question.displayed', (e) => {
+                    console.log('收到題目顯示事件:', e);
                     handleWebSocketMessage({ event: 'question.displayed', data: e });
                 })
                 .listen('.chat.message', (e) => {
+                    console.log('收到聊天訊息事件:', e);
                     handleWebSocketMessage({ event: 'chat.message', data: e });
                 })
                 .listen('.game.ended', (e) => {
+                    console.log('收到遊戲結束事件:', e);
                     handleWebSocketMessage({ event: 'game.ended', data: e });
                 });
+            
+            console.log('頻道訂閱成功:', channel);
+        } catch (error) {
+            console.error('頻道訂閱失敗:', channel, error);
         }
     }
     

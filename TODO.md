@@ -178,6 +178,12 @@
         - 創建 `test-echo-simple.php` 提供調試指南
         - 更新遊戲頁面 JavaScript 添加詳細的錯誤處理和調試信息
         - 確保頻道授權和認證正確配置
+      - **遊戲頁面 WebSocket 完整更新**：
+        - 更新 `resources/views/game/lobby.blade.php` WebSocket 配置和錯誤處理
+        - 更新 `resources/views/game/play.blade.php` WebSocket 配置和錯誤處理
+        - 更新 `resources/views/game/room.blade.php` WebSocket 配置和錯誤處理
+        - 添加詳細的調試日誌和錯誤處理機制
+        - 確保所有遊戲頁面的 WebSocket 連接穩定可靠
 
 - ✅ 路由配置
   - `/test-reverb` - 測試頁面
