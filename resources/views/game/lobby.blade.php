@@ -235,6 +235,16 @@ $(document).ready(function() {
     
     function connectWebSocket() {
         try {
+            console.log('開始初始化 Echo...');
+            
+            // 檢查 Echo 是否可用
+            if (typeof Echo === 'undefined') {
+                console.error('Echo 未定義！請檢查 Laravel Echo 是否正確載入');
+                return;
+            }
+            
+            console.log('Echo 可用，開始配置...');
+            
             // 使用 Laravel Reverb
             window.Echo = new Echo({
                 broadcaster: 'reverb',
@@ -254,10 +264,16 @@ $(document).ready(function() {
             });
             
             echo = window.Echo;
-            console.log('Laravel Reverb 連接成功');
+            console.log('Echo 配置完成');
             
-            // 訂閱遊戲大廳頻道
-            subscribeToChannel('game.lobby');
+            if (window.Echo) {
+                console.log('Echo 實例創建成功');
+                
+                // 訂閱遊戲大廳頻道
+                subscribeToChannel('game.lobby');
+            } else {
+                console.error('Echo 實例創建失敗');
+            }
             
         } catch (error) {
             console.error('Laravel Reverb 連接失敗:', error);
@@ -265,20 +281,35 @@ $(document).ready(function() {
     }
     
     function subscribeToChannel(channel) {
-        if (echo) {
+        console.log('嘗試訂閱頻道:', channel);
+        
+        if (!echo) {
+            console.error('Echo 實例不存在，無法訂閱頻道');
+            return;
+        }
+        
+        try {
             echo.channel(channel)
                 .listen('.room.created', (e) => {
+                    console.log('收到房間創建事件:', e);
                     handleWebSocketMessage({ event: 'room.created', data: e });
                 })
                 .listen('.room.deleted', (e) => {
+                    console.log('收到房間刪除事件:', e);
                     handleWebSocketMessage({ event: 'room.deleted', data: e });
                 })
                 .listen('.room.status_changed', (e) => {
+                    console.log('收到房間狀態變更事件:', e);
                     handleWebSocketMessage({ event: 'room.status_changed', data: e });
                 })
                 .listen('.member.status_changed', (e) => {
+                    console.log('收到會員狀態變更事件:', e);
                     handleWebSocketMessage({ event: 'member.status_changed', data: e });
                 });
+            
+            console.log('頻道訂閱成功:', channel);
+        } catch (error) {
+            console.error('頻道訂閱失敗:', channel, error);
         }
     }
     

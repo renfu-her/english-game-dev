@@ -165,6 +165,19 @@
         - 添加認證配置和正確的連接關閉方法
         - 創建 `test-game-reverb.php` 測試腳本
         - 確認遊戲相關事件廣播功能正常
+      - **WebSocket 連接錯誤修復**：
+        - 修復 `TypeError: Cannot read properties of undefined (reading 'channel')` 錯誤
+        - 將 `echo = new Echo()` 改為 `window.Echo = new Echo()` 然後 `echo = window.Echo`
+        - 確保 Echo 對象正確初始化並可全局訪問
+        - 創建 `test-websocket-fix.php` 診斷腳本
+        - 修復所有遊戲頁面的 WebSocket 連接問題
+      - **頻道配置和認證修復**：
+        - 創建 `app/Providers/BroadcastServiceProvider.php` 正確載入 `channels.php`
+        - 在 `bootstrap/providers.php` 中註冊 `BroadcastServiceProvider`
+        - 創建 `test-channels.php` 驗證頻道配置
+        - 創建 `test-echo-simple.php` 提供調試指南
+        - 更新遊戲頁面 JavaScript 添加詳細的錯誤處理和調試信息
+        - 確保頻道授權和認證正確配置
 
 - ✅ 路由配置
   - `/test-reverb` - 測試頁面
