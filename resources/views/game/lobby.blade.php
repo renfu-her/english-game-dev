@@ -236,7 +236,7 @@ $(document).ready(function() {
     function connectWebSocket() {
         try {
             // 使用 Laravel Reverb
-            echo = new Echo({
+            window.Echo = new Echo({
                 broadcaster: 'reverb',
                 key: '{{ config("broadcasting.connections.reverb.key") }}',
                 wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
@@ -253,6 +253,7 @@ $(document).ready(function() {
                 }
             });
             
+            echo = window.Echo;
             console.log('Laravel Reverb 連接成功');
             
             // 訂閱遊戲大廳頻道
