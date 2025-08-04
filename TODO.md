@@ -502,6 +502,7 @@
 - ✅ 添加備用連接方法框架
 - ✅ 修復 cluster 配置問題
 - ✅ 實現 Pusher 直接連接方法（繞過 Echo cluster 問題）
+- ✅ 實現原生 WebSocket 連接方法（解決協議問題）
 
 ### 修復內容：
 1. **依賴問題**：Laravel Echo 需要 Pusher JS 客戶端庫
@@ -512,6 +513,7 @@
 6. **方法檢查**：確保 `Echo.channel` 方法存在
 7. **備用方案**：添加備用連接方法框架
 8. **Pusher 直接連接**：繞過 Echo 的 cluster 限制，直接使用 Pusher
+9. **原生 WebSocket**：使用 `ws://` 協議避免 SSL 問題
 
 ### 2025-01-XX - 改進 Lobby 和 Room 成員追蹤系統
 - ✅ 修改 `leaveRoom` 方法：使用 `left_at` 時間戳而不是刪除記錄
