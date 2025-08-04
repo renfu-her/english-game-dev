@@ -210,68 +210,94 @@ $(document).ready(function() {
             
             console.log('Echo 可用，開始配置...');
             
-            // 嘗試直接使用 Pusher 而不是 Echo
+            // 嘗試使用原生 WebSocket 連接
             try {
-                console.log('嘗試直接使用 Pusher...');
+                console.log('嘗試使用原生 WebSocket...');
                 
-                const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
-                    wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
-                    wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
-                    forceTLS: false,
-                    encrypted: false,
-                    enabledTransports: ['ws', 'wss'],
-                    disableStats: true,
-                });
+                const wsUrl = `ws://{{ config("broadcasting.connections.reverb.options.host") }}:{{ config("broadcasting.connections.reverb.options.port") }}/app/{{ config("broadcasting.connections.reverb.key") }}`;
+                console.log('WebSocket URL:', wsUrl);
                 
-                console.log('Pusher 實例創建成功:', pusher);
+                const ws = new WebSocket(wsUrl);
                 
-                // 創建一個簡單的 Echo 兼容接口
-                window.Echo = {
-                    channel: function(channelName) {
-                        const channel = pusher.subscribe(channelName);
-                        return {
-                            listen: function(event, callback) {
-                                channel.bind(event, callback);
-                                return this;
-                            }
-                        };
-                    },
-                    disconnect: function() {
-                        pusher.disconnect();
-                    }
-                };
-                
-                console.log('自定義 Echo 接口創建成功');
-                updateConnectionStatus('connected', 'Pusher 連接成功');
-                
-                // 訂閱房間頻道
-                subscribeToChannel('room.{{ $room->id }}');
-                
-            } catch (pusherError) {
-                console.error('Pusher 連接失敗:', pusherError);
-                updateConnectionStatus('error', 'Pusher 連接失敗: ' + pusherError.message);
-                
-                // 如果 Pusher 也失敗，嘗試原始的 Echo 方法
-                console.log('嘗試原始 Echo 方法...');
-                const echoConfig = {
-                    broadcaster: 'pusher',
-                    key: '{{ config("broadcasting.connections.reverb.key") }}',
-                    cluster: 'mt1', // 添加一個虛擬的 cluster 值
-                    wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
-                    wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
-                    forceTLS: false,
-                    encrypted: false,
-                    enabledTransports: ['ws', 'wss'],
-                    disableStats: true,
-                    auth: {
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                ws.onopen = function() {
+                    console.log('WebSocket 連接成功');
+                    updateConnectionStatus('connected', 'WebSocket 連接成功');
+                    
+                    // 創建一個簡單的 Echo 兼容接口
+                    window.Echo = {
+                        channel: function(channelName) {
+                            console.log('訂閱頻道:', channelName);
+                            return {
+                                listen: function(event, callback) {
+                                    console.log('監聽事件:', event);
+                                    // 這裡可以實現事件監聽邏輯
+                                    return this;
+                                }
+                            };
+                        },
+                        disconnect: function() {
+                            ws.close();
                         }
-                    }
+                    };
+                    
+                    // 訂閱房間頻道
+                    subscribeToChannel('room.{{ $room->id }}');
                 };
                 
-                console.log('Echo 配置:', echoConfig);
-                window.Echo = new Echo(echoConfig);
+                ws.onerror = function(error) {
+                    console.error('WebSocket 連接錯誤:', error);
+                    updateConnectionStatus('error', 'WebSocket 連接錯誤');
+                };
+                
+                ws.onclose = function() {
+                    console.log('WebSocket 連接關閉');
+                    updateConnectionStatus('disconnected', 'WebSocket 連接關閉');
+                };
+                
+            } catch (wsError) {
+                console.error('WebSocket 初始化失敗:', wsError);
+                updateConnectionStatus('error', 'WebSocket 初始化失敗: ' + wsError.message);
+                
+                // 如果 WebSocket 失敗，嘗試 Pusher
+                console.log('嘗試 Pusher 連接...');
+                try {
+                    const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
+                        wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
+                        wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
+                        forceTLS: false,
+                        encrypted: false,
+                        enabledTransports: ['ws', 'wss'],
+                        disableStats: true,
+                    });
+                    
+                    console.log('Pusher 實例創建成功:', pusher);
+                    
+                    // 創建一個簡單的 Echo 兼容接口
+                    window.Echo = {
+                        channel: function(channelName) {
+                            const channel = pusher.subscribe(channelName);
+                            return {
+                                listen: function(event, callback) {
+                                    channel.bind(event, callback);
+                                    return this;
+                                }
+                            };
+                        },
+                        disconnect: function() {
+                            pusher.disconnect();
+                        }
+                    };
+                    
+                    console.log('自定義 Echo 接口創建成功');
+                    updateConnectionStatus('connected', 'Pusher 連接成功');
+                    
+                    // 訂閱房間頻道
+                    subscribeToChannel('room.{{ $room->id }}');
+                    
+                } catch (pusherError) {
+                    console.error('Pusher 連接失敗:', pusherError);
+                    updateConnectionStatus('error', 'Pusher 連接失敗: ' + pusherError.message);
+                }
             }
             
         } catch (error) {
