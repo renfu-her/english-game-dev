@@ -232,50 +232,120 @@
 $(document).ready(function() {
     // Laravel Reverb WebSocket 實現
     let echo = null;
+    let connectionStatus = 'disconnected';
+    
+    // 添加連接狀態指示器
+    function updateConnectionStatus(status, message = '') {
+        connectionStatus = status;
+        console.log(`連接狀態: ${status} - ${message}`);
+        
+        // 可以在頁面上顯示連接狀態
+        const statusElement = $('#connection-status');
+        if (statusElement.length === 0) {
+            $('body').prepend('<div id="connection-status" class="alert alert-info" style="position: fixed; top: 10px; right: 10px; z-index: 9999;"></div>');
+        }
+        
+        const statusMap = {
+            'connecting': { class: 'alert-warning', text: '連接中...' },
+            'connected': { class: 'alert-success', text: '已連接' },
+            'disconnected': { class: 'alert-danger', text: '未連接' },
+            'error': { class: 'alert-danger', text: '連接錯誤: ' + message }
+        };
+        
+        const statusInfo = statusMap[status] || statusMap['error'];
+        $('#connection-status').removeClass().addClass(`alert ${statusInfo.class}`).text(statusInfo.text);
+    }
+    
+    function tryFallbackWebSocket() {
+        console.log('嘗試備用 WebSocket 連接...');
+        updateConnectionStatus('connecting', '嘗試備用連接方法');
+        
+        // 這裡可以實現備用的 WebSocket 連接邏輯
+        // 例如使用原生的 WebSocket 或 Socket.io
+        console.log('備用連接方法尚未實現');
+        updateConnectionStatus('error', '備用連接方法尚未實現');
+    }
     
     function connectWebSocket() {
         try {
+            updateConnectionStatus('connecting', '開始初始化 Echo...');
             console.log('開始初始化 Echo...');
             
             // 檢查 Echo 是否可用
             if (typeof Echo === 'undefined') {
+                updateConnectionStatus('error', 'Echo 未定義！請檢查 Laravel Echo 是否正確載入');
                 console.error('Echo 未定義！請檢查 Laravel Echo 是否正確載入');
                 return;
             }
             
             console.log('Echo 可用，開始配置...');
             
-            // 使用 Laravel Reverb
-            window.Echo = new Echo({
-                broadcaster: 'reverb',
-                key: '{{ config("broadcasting.connections.reverb.key") }}',
-                wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
-                wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
-                wssPort: {{ config("broadcasting.connections.reverb.options.port") }},
-                forceTLS: false,
-                enabledTransports: ['ws', 'wss'],
-                disableStats: true,
-                // 添加認證配置
-                auth: {
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            // 嘗試直接使用 Pusher 而不是 Echo
+            try {
+                console.log('嘗試直接使用 Pusher...');
+                
+                const pusher = new Pusher('{{ config("broadcasting.connections.reverb.key") }}', {
+                    wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
+                    wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
+                    forceTLS: false,
+                    encrypted: false,
+                    enabledTransports: ['ws', 'wss'],
+                    disableStats: true,
+                });
+                
+                console.log('Pusher 實例創建成功:', pusher);
+                
+                // 創建一個簡單的 Echo 兼容接口
+                window.Echo = {
+                    channel: function(channelName) {
+                        const channel = pusher.subscribe(channelName);
+                        return {
+                            listen: function(event, callback) {
+                                channel.bind(event, callback);
+                                return this;
+                            }
+                        };
+                    },
+                    disconnect: function() {
+                        pusher.disconnect();
                     }
-                }
-            });
-            
-            echo = window.Echo;
-            console.log('Echo 配置完成');
-            
-            if (window.Echo) {
-                console.log('Echo 實例創建成功');
+                };
+                
+                console.log('自定義 Echo 接口創建成功');
+                updateConnectionStatus('connected', 'Pusher 連接成功');
                 
                 // 訂閱遊戲大廳頻道
                 subscribeToChannel('game.lobby');
-            } else {
-                console.error('Echo 實例創建失敗');
+                
+            } catch (pusherError) {
+                console.error('Pusher 連接失敗:', pusherError);
+                updateConnectionStatus('error', 'Pusher 連接失敗: ' + pusherError.message);
+                
+                // 如果 Pusher 也失敗，嘗試原始的 Echo 方法
+                console.log('嘗試原始 Echo 方法...');
+                const echoConfig = {
+                    broadcaster: 'pusher',
+                    key: '{{ config("broadcasting.connections.reverb.key") }}',
+                    cluster: 'mt1', // 添加一個虛擬的 cluster 值
+                    wsHost: '{{ config("broadcasting.connections.reverb.options.host") }}',
+                    wsPort: {{ config("broadcasting.connections.reverb.options.port") }},
+                    forceTLS: false,
+                    encrypted: false,
+                    enabledTransports: ['ws', 'wss'],
+                    disableStats: true,
+                    auth: {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    }
+                };
+                
+                console.log('Echo 配置:', echoConfig);
+                window.Echo = new Echo(echoConfig);
             }
             
         } catch (error) {
+            updateConnectionStatus('error', error.message);
             console.error('Laravel Reverb 連接失敗:', error);
         }
     }
@@ -283,14 +353,23 @@ $(document).ready(function() {
     function subscribeToChannel(channel) {
         console.log('嘗試訂閱頻道:', channel);
         
-        // 直接使用 window.Echo 而不是局部變數 echo
+        // 檢查 Echo 實例和 channel 方法
         if (!window.Echo) {
             console.error('Echo 實例不存在，無法訂閱頻道');
             return;
         }
         
+        if (typeof window.Echo.channel !== 'function') {
+            console.error('Echo.channel 方法不存在');
+            console.log('Echo 對象:', window.Echo);
+            return;
+        }
+        
         try {
-            window.Echo.channel(channel)
+            const channelInstance = window.Echo.channel(channel);
+            console.log('頻道實例創建成功:', channelInstance);
+            
+            channelInstance
                 .listen('.room.created', (e) => {
                     console.log('收到房間創建事件:', e);
                     handleWebSocketMessage({ event: 'room.created', data: e });
@@ -311,6 +390,8 @@ $(document).ready(function() {
             console.log('頻道訂閱成功:', channel);
         } catch (error) {
             console.error('頻道訂閱失敗:', channel, error);
+            console.log('錯誤詳情:', error.message);
+            console.log('錯誤堆疊:', error.stack);
         }
     }
     

@@ -46,9 +46,24 @@ class Room extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function players(): HasMany
+    public function players()
     {
         return $this->hasMany(RoomPlayer::class);
+    }
+
+    public function activePlayers()
+    {
+        return $this->hasMany(RoomPlayer::class)->whereNull('left_at');
+    }
+
+    public function getCurrentPlayersCountAttribute()
+    {
+        return $this->activePlayers()->count();
+    }
+
+    public function getCurrentPlayersAttribute()
+    {
+        return $this->activePlayers()->count();
     }
 
     public function gameRecords(): HasMany

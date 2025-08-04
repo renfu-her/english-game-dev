@@ -31,7 +31,7 @@ class GameController extends Controller
 
     public function lobby()
     {
-        $rooms = Room::with(['host', 'players', 'category'])
+        $rooms = Room::with(['host', 'activePlayers.member', 'category'])
             ->where('status', 'waiting')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -86,6 +86,7 @@ class GameController extends Controller
         $room->players()->create([
             'member_id' => Auth::guard('member')->id(),
             'is_ready' => true,
+            'joined_at' => now(),
         ]);
 
         // 廣播房間建立事件
@@ -100,44 +101,57 @@ class GameController extends Controller
 
     public function joinRoom(Room $room)
     {
-        if ($room->status !== 'waiting') {
-            return redirect()->route('game.lobby')->with('error', '房間已開始遊戲或已結束');
-        }
-
-        if ($room->players()->count() >= $room->max_players) {
+        $member = Auth::guard('member')->user();
+        
+        // 檢查房間是否已滿
+        $activePlayerCount = $room->activePlayers()->count();
+        if ($activePlayerCount >= $room->max_players) {
             return redirect()->route('game.lobby')->with('error', '房間已滿');
         }
-
-        // 檢查是否已經在房間中
-        $existingPlayer = $room->players()->where('member_id', Auth::guard('member')->id())->first();
-        if ($existingPlayer) {
-            return redirect()->route('game.room', $room->id);
-        }
-
-        $room->players()->create([
-            'member_id' => Auth::guard('member')->id(),
-            'is_ready' => true, // 新加入的玩家預設為準備狀態
-        ]);
-
-        // 重新載入房間資料以獲取最新的玩家數量
-        $room->refresh();
-
-        // 廣播玩家加入房間事件
-        $member = Auth::guard('member')->user();
-        broadcast(new PlayerJoinedRoom($room, $member))->toOthers();
-
-        // 廣播玩家準備狀態事件
-        broadcast(new PlayerReadyStatusChanged($room, $member, true));
         
-        // 廣播會員狀態變更事件
+        // 檢查用戶是否已經在房間中
+        $existingPlayer = $room->players()->where('member_id', $member->id)->first();
+        
+        if ($existingPlayer) {
+            // 如果玩家之前離開過，重新加入
+            if ($existingPlayer->left_at) {
+                $existingPlayer->update([
+                    'left_at' => null,
+                    'is_ready' => false,
+                    'joined_at' => now()
+                ]);
+                
+                // 廣播玩家重新加入事件
+                broadcast(new PlayerJoinedRoom($room, $member));
+                broadcast(new MemberStatusChanged($member, 'in_room', $room->id));
+                
+                return redirect()->route('game.room', $room->id)->with('success', '重新加入房間成功');
+            } else {
+                return redirect()->route('game.room', $room->id)->with('info', '您已經在房間中');
+            }
+        }
+        
+        // 創建新的玩家記錄
+        $room->players()->create([
+            'member_id' => $member->id,
+            'is_ready' => false,
+            'joined_at' => now(),
+        ]);
+        
+        // 廣播玩家加入事件
+        broadcast(new PlayerJoinedRoom($room, $member));
         broadcast(new MemberStatusChanged($member, 'in_room', $room->id));
-
-        return redirect()->route('game.room', $room->id);
+        
+        return redirect()->route('game.room', $room->id)->with('success', '成功加入房間');
     }
 
     public function room(Room $room)
     {
-        $room->load(['host', 'players.member', 'category']);
+        if ($room->status === 'playing') {
+            return redirect()->route('game.play', $room->id);
+        }
+
+        $room->load(['host', 'activePlayers.member', 'category']);
         
         return view('game.room', compact('room'));
     }
@@ -145,23 +159,27 @@ class GameController extends Controller
     public function startGame(Room $room)
     {
         if ($room->host_id !== Auth::guard('member')->id()) {
-            return redirect()->route('game.room', $room->id)->with('error', '只有房主可以開始遊戲');
+            return response()->json(['error' => '只有房主可以開始遊戲'], 403);
         }
 
-        if ($room->players()->count() < 2) {
-            return redirect()->route('game.room', $room->id)->with('error', '至少需要2名玩家才能開始遊戲');
+        // 檢查所有玩家是否都準備好了
+        $unreadyPlayers = $room->activePlayers()->where('is_ready', false)->count();
+        if ($unreadyPlayers > 0) {
+            return response()->json(['error' => '還有玩家未準備'], 400);
         }
 
-        $oldStatus = $room->status;
+        // 更新房間狀態
         $room->update(['status' => 'playing']);
-        
-        // 廣播房間狀態變更事件
-        broadcast(new RoomStatusChanged($room, $oldStatus, 'playing'));
-        
+
         // 廣播遊戲開始事件
         broadcast(new GameStarted($room));
         
-        return redirect()->route('game.play', $room->id);
+        // 廣播所有玩家的狀態變更為遊戲中
+        foreach ($room->activePlayers as $player) {
+            broadcast(new MemberStatusChanged($player->member, 'playing', $room->id));
+        }
+
+        return response()->json(['success' => true, 'message' => '遊戲開始！']);
     }
 
     public function play(Room $room)
@@ -170,7 +188,7 @@ class GameController extends Controller
             return redirect()->route('game.room', $room->id);
         }
 
-        $room->load(['host', 'players.member', 'category']);
+        $room->load(['host', 'activePlayers.member', 'category']);
         
         return view('game.play', compact('room'));
     }
@@ -204,8 +222,11 @@ class GameController extends Controller
             return redirect()->route('game.lobby')->with('error', '您不在這個房間中');
         }
 
-        // 刪除玩家記錄
-        $player->delete();
+        // 更新離開時間而不是刪除記錄
+        $player->update([
+            'left_at' => now(),
+            'is_ready' => false
+        ]);
 
         // 重新載入房間以獲取最新的玩家數量
         $room->refresh();
@@ -213,11 +234,12 @@ class GameController extends Controller
         // 廣播玩家離開房間事件
         broadcast(new PlayerLeftRoom($room, $member));
         
-        // 廣播會員狀態變更事件
-        broadcast(new MemberStatusChanged($member, 'online'));
+        // 廣播會員狀態變更事件 - 使用更明確的狀態
+        broadcast(new MemberStatusChanged($member, 'left_room', $room->id));
 
-        // 如果房間空了，刪除房間
-        if ($room->players()->count() === 0) {
+        // 如果房間沒有活躍玩家，刪除房間
+        $activePlayers = $room->players()->whereNull('left_at')->count();
+        if ($activePlayers === 0) {
             $roomName = $room->name;
             $roomId = $room->id;
             $room->delete();
@@ -228,9 +250,9 @@ class GameController extends Controller
             return redirect()->route('game.lobby')->with('success', '房間已關閉');
         }
 
-        // 如果房主離開，轉移房主權限給下一個玩家
+        // 如果房主離開，轉移房主權限給下一個活躍玩家
         if ($room->host_id === $member->id) {
-            $newHost = $room->players()->first();
+            $newHost = $room->players()->whereNull('left_at')->first();
             if ($newHost) {
                 $room->update(['host_id' => $newHost->member_id]);
             }
@@ -244,7 +266,7 @@ class GameController extends Controller
         $member = Auth::guard('member')->user();
         
         // 檢查用戶是否在房間中
-        $player = $room->players()->where('member_id', $member->id)->first();
+        $player = $room->activePlayers()->where('member_id', $member->id)->first();
         if (!$player) {
             return response()->json(['error' => '您不在這個房間中'], 403);
         }
@@ -273,11 +295,11 @@ class GameController extends Controller
             return response()->json(['error' => '只有房主可以設定所有玩家準備'], 403);
         }
 
-        // 將所有玩家設為準備狀態
-        $room->players()->update(['is_ready' => true]);
+        // 將所有活躍玩家設為準備狀態
+        $room->activePlayers()->update(['is_ready' => true]);
 
         // 廣播每個玩家的準備狀態變更
-        foreach ($room->players as $player) {
+        foreach ($room->activePlayers as $player) {
             broadcast(new PlayerReadyStatusChanged($room, $player->member, true));
         }
 

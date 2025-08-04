@@ -56,9 +56,10 @@ class MemberStatusChanged implements ShouldBroadcast
             'online' => '上線',
             'offline' => '離線',
             'in_room' => '在房間中',
-            'in_game' => '遊戲中',
             'ready' => '已準備',
             'not_ready' => '未準備',
+            'playing' => '遊戲中',
+            'left_room' => '離開房間',
         ];
 
         return [
@@ -70,8 +71,8 @@ class MemberStatusChanged implements ShouldBroadcast
             'status' => $this->status,
             'status_text' => $statusMessages[$this->status] ?? $this->status,
             'room_id' => $this->roomId,
-            'message' => $this->member->name . ' ' . ($statusMessages[$this->status] ?? $this->status),
             'timestamp' => now()->toISOString(),
+            'message' => $this->member->name . ' ' . ($statusMessages[$this->status] ?? $this->status),
         ];
     }
 
